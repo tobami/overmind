@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}: Overview{% endblock %}
+{% block content %}
+    {% for instance in instance_list %}
+    <p>{{ instance }}</p>
+    {% endfor %}
+{% endblock %}
+{% block sidebar %}
+        <section>
+            <h2>Providers</h2>
+            <ul>{% for provider in provider_list %}
+                <li>{{ provider }}</li>{% endfor %}
+            </ul>
+        </section>
+        <section>
+            <h2>Tags (examples)</h2>
+            <ul>
+                <li>Webserver1</li>
+                <li>Load Balancer</li>
+            </ul>
+        </section>
+{% endblock %}

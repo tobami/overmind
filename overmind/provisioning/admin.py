@@ -1,5 +1,5 @@
-from overmind.provisioning.models import ProviderEC2, InstanceEC2
+from overmind.provisioning.models import Provider, Instance
 from django.contrib import admin
 
-admin.site.register(ProviderEC2)
-admin.site.register(InstanceEC2)
+admin.site.register(Provider)
+admin.site.register(Instance)

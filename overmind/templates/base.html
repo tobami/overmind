@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Overmind{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/media/css/default.css" />
+    <!--[if IE]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div id="hwrapper">
+    <header>
+        <h1>Overmind</h1>
+        <nav>
+            <ul>
+                <li><a href="/nodes/">Resources</a></li>
+                <li><a href="#">Deployment</a></li>
+                <li><a href="#">Configuration</a></li>
+            </ul>
+        </nav>
+    </header>
+    </div>
+    <div id="content">
+        <div id="maincontent">{% block content %}{% endblock %}</div>
+        <aside>{% block sidebar %}{% endblock %}</aside>
+    </div>
+    <footer>{% block footer %}{% endblock %}</footer>
+</body>
+</html>

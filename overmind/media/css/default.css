@@ -1,0 +1,108 @@
+* { margin: 0; padding: 0; }
+
+article, footer, header, nav { display: block; }
+ul { list-style: none; }
+body {
+    margin: 0 auto;
+    width: 940px;
+    background: #F0F0F0;
+    font: 13px "Helvetica Neue", Helvetica, Arial, san-serif;
+}
+#hwrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background-color: #111;
+}
+
+header {
+    display:table;
+    margin: 0 auto;
+    width: 940px;
+}
+header h1 { display: table-cell; color: #eee; vertical-align: middle; }
+header nav { display: table-cell; }
+
+    header nav ul {
+        position: absolute:
+        right: 0;
+    }
+
+    header nav ul li {
+        float: left;
+    }
+    header nav ul li a {
+        display: block;
+        margin-right: 30px;
+        font-size: 14px;
+        line-height: 44px;
+        text-align: center;
+        text-decoration: none;
+        color: #777;
+    }
+
+    header nav ul li a:hover {
+        color: #fff;
+    }
+
+    header nav ul li.selected a {
+        color: #fff;
+    }
+
+#content {
+    display: table;
+    margin-top: 43px;
+}
+
+#maincontent {
+    display: table-cell;
+    width: 620px;
+    padding-left: 22px;
+    padding-top: 20px;
+    padding-right: 1em;
+}
+
+    #maincontent p {
+        padding: 12px;
+    }
+    
+    #maincontent p:nth-child(odd) {
+/*         padding: 21px; */
+        background: #E3E3E3;
+        border: 1px solid #d7d7d7;
+        -moz-border-radius: 11px;
+        -webkit-border-radius: 11px;
+    }
+
+aside {
+    display: table-cell;
+    width: 300px;
+    padding-bottom: 1em;
+    background: url("/media/images/sidebar_background.png") top left;
+}
+
+    aside section {
+        margin: 22px 0 0 22px;
+        padding: 11px 22px;
+        background: url("/media/images/sidebar_section_background.png") repeat-x;
+        -moz-border-radius: 11px;
+        -webkit-border-radius: 11px;
+    }
+
+    aside section ul {
+        margin: 0 0 0 22px;
+        list-style: none;
+    }
+
+/* new clearfix */
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+* html .clearfix { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
