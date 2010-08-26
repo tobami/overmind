@@ -3,7 +3,8 @@
 <head>
     <meta charset='utf-8' />
     <title>Overmind{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="/media/css/default.css" />
+    <link rel="stylesheet" href="/media/css/default.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
@@ -14,7 +15,9 @@
         <h1>Overmind</h1>
         <nav>
             <ul>
-                <li><a href="/nodes/">Resources</a></li>
+                <li><a href="/overview/">Overview</a></li>
+                <li><a href="/provider/">New Provider</a></li>
+                <li><a href="/node/">New Node</a></li>
                 <li><a href="#">Deployment</a></li>
                 <li><a href="#">Configuration</a></li>
             </ul>
@@ -22,8 +25,8 @@
     </header>
     </div>
     <div id="content">
-        <div id="maincontent">{% block content %}{% endblock %}</div>
         <aside>{% block sidebar %}{% endblock %}</aside>
+        <div id="maincontent">{% block content %}{% endblock %}</div>
     </div>
     <footer>{% block footer %}{% endblock %}</footer>
 </body>

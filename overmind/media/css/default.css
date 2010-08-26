@@ -2,9 +2,11 @@
 
 article, footer, header, nav { display: block; }
 ul { list-style: none; }
+a.action { float: right; font-size: smaller; }
+
 body {
     margin: 0 auto;
-    width: 940px;
+/*     width: 940px; */
     background: #F0F0F0;
     font: 13px "Helvetica Neue", Helvetica, Arial, san-serif;
 }
@@ -19,14 +21,14 @@ body {
 header {
     display:table;
     margin: 0 auto;
-    width: 940px;
+    width: 980px;
 }
 header h1 { display: table-cell; color: #eee; vertical-align: middle; }
 header nav { display: table-cell; }
 
     header nav ul {
-        position: absolute:
-        right: 0;
+/*         position: absolute; */
+/*         right: 0; */
     }
 
     header nav ul li {
@@ -39,7 +41,7 @@ header nav { display: table-cell; }
         line-height: 44px;
         text-align: center;
         text-decoration: none;
-        color: #777;
+        color: #AAA;
     }
 
     header nav ul li a:hover {
@@ -57,42 +59,51 @@ header nav { display: table-cell; }
 
 #maincontent {
     display: table-cell;
-    width: 620px;
+    width: 700px;
     padding-left: 22px;
     padding-top: 20px;
     padding-right: 1em;
 }
 
-    #maincontent p {
+    #maincontent ul.node li {
         padding: 12px;
-    }
-    
-    #maincontent p:nth-child(odd) {
-/*         padding: 21px; */
-        background: #E3E3E3;
+        margin-bottom: 1em;
         border: 1px solid #d7d7d7;
         -moz-border-radius: 11px;
         -webkit-border-radius: 11px;
+        background: #E8E8E8;
+    }
+    
+    #maincontent ul.node li:nth-child(odd) {
+        background: #E3E3E3;
+    }
+    
+    #maincontent ul.node li:hover {
+/*         cursor: pointer; */
+        background: #EAEAEA;
     }
 
 aside {
     display: table-cell;
-    width: 300px;
-    padding-bottom: 1em;
+    width: 280px;
+    padding: 1em;
     background: url("/media/images/sidebar_background.png") top left;
 }
 
     aside section {
-        margin: 22px 0 0 22px;
         padding: 11px 22px;
         background: url("/media/images/sidebar_section_background.png") repeat-x;
         -moz-border-radius: 11px;
         -webkit-border-radius: 11px;
     }
-
+    
+    aside section h3 { margin-bottom: 4px; font-size: 120%; }
     aside section ul {
-        margin: 0 0 0 22px;
+/*         margin: 0 0 0 22px; */
         list-style: none;
+    }
+    aside section ul li {
+        padding: 0.4em;
     }
 
 /* new clearfix */

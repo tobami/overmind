@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block title %}: Overview{% endblock %}
 {% block content %}
-    {% for instance in instance_list %}
-    <p>{{ instance }}</p>
-    {% endfor %}
+    <ul class="node">
+        {% for instance in instance_list %}<li>{{ instance }}<a class="action" href="/node/{{ instance.id }}/delete/">delete</a></li>{% endfor %}
+    </ul>
 {% endblock %}
 {% block sidebar %}
         <section>
-            <h2>Providers</h2>
+            <h3>Providers</h3>
             <ul>{% for provider in provider_list %}
-                <li>{{ provider }}</li>{% endfor %}
+                <li>{{ provider.name }}<a class="action" href="/provider/{{ provider.id }}/delete/">delete</a></li>{% endfor %}
             </ul>
         </section>
         <section>
-            <h2>Tags/Roles (examples)</h2>
+            <h3>Tags/Roles (examples)</h3>
             <ul>
                 <li>Webserver</li>
                 <li>Load Balancer</li>

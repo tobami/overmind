@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from django.views.generic.simple import direct_to_template
+from django.views.generic.simple import redirect_to
 from django.contrib import admin
 from django.conf import settings
 
@@ -15,6 +15,12 @@ if settings.DEBUG:
     )
 
 urlpatterns += patterns('',
-    (r'^nodes/', 'overmind.provisioning.views.nodes'),
-    (r'^', direct_to_template, {'template': 'base.html'}),
+    (r'^overview/$', 'overmind.provisioning.views.overview'),
+    (r'^provider/$', 'overmind.provisioning.views.newprovider'),
+    (r'^node/$', 'overmind.provisioning.views.newnode'),
+    (r'^provider/(?P<provider_id>\d+)/delete/$',\
+        'overmind.provisioning.views.deleteprovider'),
+    (r'^node/(?P<node_id>\d+)/delete/$',\
+        'overmind.provisioning.views.deletenode'),
+    #(r'^', 'redirect_to', {'url': '/overview/'}),
 )
