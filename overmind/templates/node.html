@@ -1,14 +1,36 @@
 {% extends "base.html" %}
 {% block title %}: New Node{% endblock %}
 
-{% block script %}<script></script>{% endblock %}
+{% block sidebar %}
+{% endblock %}
 
 {% block content %}
     <h2>Add a new node</h2>
-    <form action="" method="post">
-    {{ form.as_p }}
-    <input type="submit" value="Submit" />
-    </form>
+    <ul>
+        <li>
+            <h3>Provider</h3>
+            <ul>{% for provider in provider_list %}
+            <li>
+                <input id="provider_{{ provider.id }}" type="radio" name="provider" value="{{ provider.id }}" />
+                <label for="provider_{{ provider.id }}">{{ provider }}</label>
+            </li>{% endfor %}
+            </ul>
+        </li>
+    </ul>
+    <hr />
+    <div id="form"></div>
+    <script>
+        function getProviderForm() {
+            var provider = $("input:radio[name='provider']:checked").val();
+            $("#form").fadeOut("fast", function() {
+                $(this).load("new/?provider=" + provider);
+                $(this).fadeIn();
+            });
+        }
+        
+        $(function() {
+            $("input:radio[name='provider']").change(getProviderForm);
+        });
+    </script>
 {% endblock %}
-{% block sidebar %}
-{% endblock %}
+

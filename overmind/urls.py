@@ -17,7 +17,11 @@ if settings.DEBUG:
 urlpatterns += patterns('',
     (r'^overview/$', 'overmind.provisioning.views.overview'),
     (r'^provider/$', 'overmind.provisioning.views.newprovider'),
-    (r'^node/$', 'overmind.provisioning.views.newnode'),
+    (r'^node/$', 'overmind.provisioning.views.node'),
+    
+    #Create
+    (r'^node/new/$', 'overmind.provisioning.views.newnode'),
+    #Detele
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'overmind.provisioning.views.deleteprovider'),
     (r'^node/(?P<node_id>\d+)/delete/$',\

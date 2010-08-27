@@ -8,17 +8,34 @@ class ProviderForm(ModelForm):
 
 
 class GenericInstanceForm(ModelForm):
+    provider = forms.ModelChoiceField(
+        queryset = Provider.objects.all(),
+        widget   = forms.HiddenInput
+    )
+    
     class Meta:
         model  = Instance
-        fields = ('name', 'provider')
+        fields = ('provider', 'name')
 
-
-class InstanceForm(GenericInstanceForm):
-    #TODO: Choices should be dynamically created depending on the chosen provider
-    DUMMY_CHOICES = (('TODO', 'TODO'),)
-    flavor        = forms.CharField(max_length=10,
-        widget=forms.Select(choices=DUMMY_CHOICES))
-    image         = forms.CharField(max_length=20,
-        widget=forms.Select(choices=DUMMY_CHOICES))
-    realm        = forms.CharField(max_length=10,
-        widget=forms.Select(choices=DUMMY_CHOICES))
+class InstanceForm(ModelForm):
+    provider = forms.ModelChoiceField(
+        queryset = Provider.objects.all(),
+        widget   = forms.HiddenInput,
+    )
+    
+    image  = forms.ChoiceField()
+    flavor = forms.ChoiceField(required=False)
+    #realm  = forms.ChoiceField()#TODO: implement realms
+    
+    def __init__(self, provider, *args, **kwargs):
+        super(InstanceForm, self).__init__(*args, **kwargs)
+        p = Provider.objects.get(id=provider)
+        self.fields['provider'].initial = p.id
+        self.fields['image'].choices = [(img.id, img.name) for img in p.get_images()]
+        flavors = p.get_flavors()
+        if flavors is not None:
+            self.fields['flavor'].choices = [(flavor.id, flavor.name) for flavor in flavors]
+    
+    class Meta:
+        model  = Instance
+        fields = ('provider', 'name')

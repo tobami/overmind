@@ -25,7 +25,7 @@
     </header>
     </div>
     <div id="content">
-        <aside>{% block sidebar %}{% endblock %}</aside>
+        {% block sidebar %}{% endblock %}
         <div id="maincontent">{% block content %}{% endblock %}</div>
     </div>
     <footer>{% block footer %}{% endblock %}</footer>
