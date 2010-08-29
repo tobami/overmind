@@ -5,6 +5,8 @@ from libcloud.providers import get_driver
 class ProviderController():
     def __init__(self, provider):
         self.provider = provider
+        self.flavors = None
+        self.images = None
         
         # Extremely dumb code to map provider_types to libcloud providers
         #TODO replace with a proper function/statement or extending PROVIDER_META
@@ -38,23 +40,37 @@ class ProviderController():
         name   = form.cleaned_data['name']
         #TODO: get image id from the form image name
         images = self.get_images()
+        flavors = self.get_flavors()
         image = None
+        flavor = None
         #Choose correct image
         for img in images:
             image = img
-            if image == form.cleaned_data['image']:
+            if image.id == form.cleaned_data['image']:
                 break
         if image is None: #Abort: form image doesn't correspond to any provider image'
             return None
-        flavor = form.cleaned_data['flavor']
-        node   = self.conn.create_node(name=name, image=image, size=flavor)
+        #Choose correct flavor/flavor
+        for f in flavors:
+            flavor = f
+            if flavor.id == form.cleaned_data['flavor']:
+                break
+        if flavor is None: #Abort: form flavor doesn't correspond to any provider flavor'
+            return None
+        node = self.conn.create_node(name=name, image=image, size=flavor)
         return {"ip, hostname, etc": "data", "some provider specific data": "data"}
-    
-    def get_flavors(self):
-        return self.conn.list_sizes()
-    
+
     def get_images(self):
-        return self.conn.list_images()
+        if self.images is None:
+            self.images = self.conn.list_images()
+        if self.provider.provider_type.startswith("EC2"):
+            self.images = [image for image in self.images if image.id.startswith('ami')]
+        return self.images
+
+    def get_flavors(self):
+        if self.flavors is None:
+            self.flavors = self.conn.list_sizes()
+        return self.flavors
     
     def get_realms(self):
         #TODO: not implemented
@@ -67,7 +83,11 @@ class DummyDriver():
         return {"ip": "80.70.50.81"}
     
     def list_sizes(self):
-        return ['m1-small', 'c1-medium']
+        sizes = [
+            DummySize("1", "m1.small"),
+            DummySize("2", "c1.medium"),
+        ]
+        return sizes
     
     def list_images(self):
         images = [
@@ -80,6 +100,11 @@ class DummyDriver():
         return ['us-east-1a', 'us-east-1zzz']
 
 class DummyImage():
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+
+class DummySize():
     def __init__(self, id, name):
         self.id = id
         self.name = name

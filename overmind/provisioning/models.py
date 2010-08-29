@@ -33,7 +33,7 @@ class Provider(models.Model):
     
     def get_flavors(self):
         controller = ProviderController(self)
-        return controller.get_realms()
+        return controller.get_flavors()
     
     def get_images(self):
         controller = ProviderController(self)

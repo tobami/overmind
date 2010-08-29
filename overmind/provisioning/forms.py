@@ -24,7 +24,7 @@ class InstanceForm(ModelForm):
     )
     
     image  = forms.ChoiceField()
-    flavor = forms.ChoiceField(required=False)
+    flavor = forms.ChoiceField()
     #realm  = forms.ChoiceField()#TODO: implement realms
     
     def __init__(self, provider, *args, **kwargs):
@@ -32,9 +32,7 @@ class InstanceForm(ModelForm):
         p = Provider.objects.get(id=provider)
         self.fields['provider'].initial = p.id
         self.fields['image'].choices = [(img.id, img.name) for img in p.get_images()]
-        flavors = p.get_flavors()
-        if flavors is not None:
-            self.fields['flavor'].choices = [(flavor.id, flavor.name) for flavor in flavors]
+        self.fields['flavor'].choices = [(flavor.id, flavor.name) for flavor in p.get_flavors()]
     
     class Meta:
         model  = Instance
