@@ -31,8 +31,10 @@ class ProviderController():
         if provider_type == "Dummy": self.conn = DummyDriver()
         else:
             Driver = get_driver(provider_type)
+            # Providers with only one access key
             if self.provider.secret_key == "":
                 self.conn = Driver(self.provider.access_key)
+            # Providers with 2 keys
             else:
                 self.conn = Driver(self.provider.access_key, self.provider.secret_key)
     
