@@ -42,25 +42,36 @@ class ProviderController():
     def spawn_new_instance(self, form):
         name   = form.cleaned_data['name']
         #TODO: get image, size, location id from the form image name
-        images = self.get_images()
-        flavors = self.get_flavors()
-        image = None
+        image  = None
         flavor = None
+        realm  = None
         #Choose correct image
-        for img in images:
+        for img in self.get_images():
             image = img
             if image.id == form.cleaned_data['image']:
                 break
-        if image is None: #Abort: form image doesn't correspond to any provider image'
+        if image is None:
+            #Abort: form image doesn't correspond to any provider image'
             return None
-        #Choose correct flavor/flavor
-        for f in flavors:
+        #Choose correct flavor
+        for f in self.get_flavors():
             flavor = f
             if flavor.id == form.cleaned_data['flavor']:
                 break
-        if flavor is None: #Abort: form flavor doesn't correspond to any provider flavor'
+        if flavor is None:
+            #Abort: form flavor doesn't correspond to any provider flavor'
+            return Non
+        #Choose correct realm
+        for r in self.get_realms():
+            realm = r
+            if realm.id == form.cleaned_data['realm']:
+                break
+        if realm is None:
+            #Abort: form realm doesn't correspond to any provider location'
             return None
-        node = self.conn.create_node(name=name, image=image, size=flavor, location=realm)
+        node = self.conn.create_node(
+            name=name, image=image, size=flavor, location=realm
+        )
         return { 'public_ip': node.public_ip[0], 'uuid': node.uuid }
     
     def reboot_node(self, instance):
@@ -80,6 +91,9 @@ class ProviderController():
                 node = n
                 break
         return self.conn.destroy_node(node)
+    
+    def get_nodes(self):
+        return self.conn.list_nodes()
     
     def get_images(self):
         if self.images is None:

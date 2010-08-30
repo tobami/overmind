@@ -32,6 +32,20 @@ class Provider(models.Model):
                 PROVIDER_META[self.provider_type]['secret_key']
         super(Provider, self).save(*args, **kwargs)
     
+    def import_nodes(self):
+        p = ProviderController(self)
+        print p.get_realms()
+        print p.get_nodes()
+        nodes = p.get_nodes()
+        for node in nodes:
+            inst = Instance(
+                name        = node.name,
+                instance_id = node.uuid,
+                provider    = self,
+                public_ip   = node.public_ip[0],
+            )
+            inst.save()
+    
     def get_flavors(self):
         controller = ProviderController(self)
         return controller.get_flavors()
@@ -43,6 +57,10 @@ class Provider(models.Model):
     def get_realms(self):
         controller = ProviderController(self)
         return controller.get_realms()
+    
+    def spawn_new_instance(self, data):
+        controller = ProviderController(self)
+        return controller.spawn_new_instance(data)
     
     def __unicode__(self):
         return self.name

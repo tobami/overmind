@@ -2,7 +2,6 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
 from overmind.provisioning.models import Provider, Instance
 from overmind.provisioning.forms import ProviderForm, InstanceForm
-from overmind.provisioning.controllers import ProviderController
 from libcloud.types import NodeState, InvalidCredsException
 
 
@@ -31,7 +30,8 @@ def newprovider(request):
                 #TODO: return a form error
                 #NOTE: rackspace returns InvalidCredsException on class init but EC2 does not
             ## END Check
-            form.save()
+            newprovider = form.save()
+            newprovider.import_nodes()
             
             return HttpResponseRedirect('/overview/') # Redirect after POST
     else:
@@ -53,12 +53,11 @@ def node(request):
 
 def newnode(request):
     if request.method == 'POST':
-        provider = request.POST.get("provider")
-        form = InstanceForm(provider, request.POST)
+        provider_id = request.POST.get("provider")
+        form = InstanceForm(provider_id, request.POST)
         if form.is_valid():
             inst = form.save(commit = False)
-            controller = ProviderController(inst.provider)
-            data_from_provider = controller.spawn_new_instance(form)
+            data_from_provider = inst.provider.spawn_new_instance(form)
             if data_from_provider is not None:
                 #TODO: do extra things with data_from_provider
                 inst.instance_id = data_from_provider['uuid']
