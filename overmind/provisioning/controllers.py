@@ -21,6 +21,8 @@ class ProviderController():
         ## REAL DRIVERS ##
         elif provider.provider_type == "EC2_US_EAST":
             provider_type = types.Provider.EC2_US_EAST
+        elif provider.provider_type == "EC2_US_WEST":
+            provider_type = types.Provider.EC2_US_WEST
         elif provider.provider_type == "EC2_EU_WEST":
             provider_type = types.Provider.EC2_EU_WEST
         elif provider.provider_type == "Rackspace":
@@ -60,7 +62,7 @@ class ProviderController():
                 break
         if flavor is None:
             #Abort: form flavor doesn't correspond to any provider flavor'
-            return Non
+            return None
         #Choose correct realm
         for r in self.get_realms():
             realm = r

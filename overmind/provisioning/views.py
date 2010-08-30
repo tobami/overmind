@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
+from overmind.provisioning.controllers import ProviderController
 from overmind.provisioning.models import Provider, Instance
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from libcloud.types import NodeState, InvalidCredsException
