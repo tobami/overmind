@@ -21,10 +21,12 @@ urlpatterns += patterns('',
     
     #Create
     (r'^node/new/$', 'overmind.provisioning.views.newnode'),
-    #Detele
+    #Reset
+    (r'^node/(?P<node_id>\d+)/reboot/$', 'overmind.provisioning.views.rebootnode'),
+    #Delete
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'overmind.provisioning.views.deleteprovider'),
-    (r'^node/(?P<node_id>\d+)/delete/$',\
+    (r'^node/(?P<node_id>\d+)/destroy/$',\
         'overmind.provisioning.views.deletenode'),
     #(r'^', 'redirect_to', {'url': '/overview/'}),
 )

@@ -7,6 +7,7 @@ class ProviderController():
         self.provider = provider
         self.flavors = None
         self.images = None
+        self.realm = None
         
         # Extremely dumb code to map provider_types to libcloud providers
         #TODO replace with a proper function/statement or extending PROVIDER_META
@@ -40,7 +41,7 @@ class ProviderController():
     
     def spawn_new_instance(self, form):
         name   = form.cleaned_data['name']
-        #TODO: get image id from the form image name
+        #TODO: get image, size, location id from the form image name
         images = self.get_images()
         flavors = self.get_flavors()
         image = None
@@ -59,9 +60,27 @@ class ProviderController():
                 break
         if flavor is None: #Abort: form flavor doesn't correspond to any provider flavor'
             return None
-        node = self.conn.create_node(name=name, image=image, size=flavor)
-        return {"ip, hostname, etc": "data", "some provider specific data": "data"}
-
+        node = self.conn.create_node(name=name, image=image, size=flavor, location=realm)
+        return { 'public_ip': node.public_ip[0], 'uuid': node.uuid }
+    
+    def reboot_node(self, instance):
+        #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
+        node = None
+        for n in self.conn.list_nodes():
+            if n.uuid == instance.instance_id:
+                node = n
+                break
+        return self.conn.reboot_node(node)
+    
+    def destroy_node(self, instance):
+        #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
+        node = None
+        for n in self.conn.list_nodes():
+            if n.uuid == instance.instance_id:
+                node = n
+                break
+        return self.conn.destroy_node(node)
+    
     def get_images(self):
         if self.images is None:
             self.images = self.conn.list_images()
@@ -75,14 +94,14 @@ class ProviderController():
         return self.flavors
     
     def get_realms(self):
-        #TODO: not implemented
-        #return self.conn.??? #No idea how to list availability zones from libcloud
-        return None
+        if self.realm is None:
+            self.realm = self.conn.list_locations()
+        return self.conn.list_locations()
 
 
 class DummyDriver():
     def create_node(self, name, image, size, flavor=None):
-        return {"ip": "80.70.50.81"}
+        return {"public_ip": "80.70.50.81", 'uuid': 'asdkfjsaopdj5780fcd5'}
     
     def list_sizes(self):
         sizes = [

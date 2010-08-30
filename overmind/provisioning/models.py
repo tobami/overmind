@@ -3,7 +3,8 @@ from overmind.provisioning.controllers import ProviderController
 
 PROVIDER_META = {
     'Dummy': {'access_key': 'DAccess Key', 'secret_key': None},
-    'Dummy_libcloud': {'access_key': 'DAccess Key', 'secret_key': None},
+    'Dummy_libcloud': {'access_key': 'Dummy Access Key', 'secret_key': None},
+    'EC2_US_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_US_EAST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_EU_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'Rackspace': {'access_key': 'Rackspace User', 'secret_key': 'Rackspace Key'},
@@ -68,14 +69,14 @@ class Instance(models.Model):
     # Standard instance fields
     name              = models.CharField(unique=True, max_length=25)
     #TODO: What should the instance_id legth be?
-    instance_id       = models.CharField(max_length=20)
+    instance_id       = models.CharField(max_length=50)
     provider          = models.ForeignKey(Provider)
     state             = models.CharField(
         default='BE', max_length=2, choices=STATE_CHOICES
     )
     hostname          = models.CharField(max_length=20)
     internal_ip       = models.CharField(max_length=20)
-    external_ip       = models.CharField(max_length=20)
+    public_ip         = models.CharField(max_length=20)
     
     # Overmind related fields
     production_state  = models.CharField(
@@ -84,4 +85,14 @@ class Instance(models.Model):
     unique_together   = ('instance_id', 'provider')
     
     def __unicode__(self):
-        return str(self.provider) + ": " + self.name + " - " + self.external_ip
+        return str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id
+
+    def reboot(self):
+        '''Returns True if the reboot was successful, otherwise False'''
+        controller = ProviderController(self.provider)
+        return controller.reboot_node(self)
+    
+    def destroy(self):
+        '''Returns True if the destroy was successful, otherwise False'''
+        controller = ProviderController(self.provider)
+        return controller.destroy_node(self)

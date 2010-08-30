@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from overmind.provisioning.models import Provider, Instance
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from overmind.provisioning.controllers import ProviderController
@@ -19,22 +19,28 @@ def newprovider(request):
         form = ProviderForm(request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
             # Check that the account is valid
-            Prov = form.save(commit = False)
+            prov = form.save(commit = False)
+            ## Check provider
+            #TODO: Turn into models.Provider.check_credentials
+            #TODO: Improve check.
             try:
-                controller = ProviderController(Prov)
-                form.save()
-                return HttpResponseRedirect('/overview/') # Redirect after POST
+                controller = ProviderController(prov)
             except InvalidCredsException:
-                pass
+                print "InvalidCredentials!"
+                return render_to_response('provider.html', { 'form': form })
                 #TODO: return a form error
                 #NOTE: rackspace returns InvalidCredsException on class init but EC2 does not
+            ## END Check
+            form.save()
+            
+            return HttpResponseRedirect('/overview/') # Redirect after POST
     else:
         form = ProviderForm() # An unbound form
 
     return render_to_response('provider.html', { 'form': form })
 
 def deleteprovider(request, provider_id):
-    #TODO: Introduce checks
+    #TODO: Needs confirmation dialog (all nodes will be deleted, not destroyed)
     #TODO: turn into DELETE request? completely RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
@@ -47,37 +53,38 @@ def node(request):
 
 def newnode(request):
     if request.method == 'POST':
-        print request.POST.get("provider")
         provider = request.POST.get("provider")
         form = InstanceForm(provider, request.POST)
-        print form
         if form.is_valid():
-            Inst = form.save(commit = False)
-            controller = ProviderController(Inst.provider)
+            inst = form.save(commit = False)
+            controller = ProviderController(inst.provider)
             data_from_provider = controller.spawn_new_instance(form)
             if data_from_provider is not None:
                 #TODO: do extra things with data_from_provider
-                Inst.save()
+                inst.instance_id = data_from_provider['uuid']
+                inst.public_ip   = data_from_provider['public_ip']
+                inst.save()
                 return HttpResponseRedirect('/overview/')
     else:
-        print request.GET
         if "provider" in request.GET:
-            #p = Provider.objects.get(id=request.GET.get("provider"))
             form = InstanceForm(request.GET.get("provider"), initial={'providier': request.GET.get("provider")})
-            #images = p.get_images()
-            #form.fields['image'].choices = [(str(img.id), img.name) for img in images]
         else:
             raise Exception
             #TODO: proper HttpError
-        
-        
     
     return render_to_response('node_form.html', { 'form': form })
 
+def rebootnode(request, node_id):
+    node = Instance.objects.get(id=node_id)
+    result = node.reboot()
+    #TODO: result true or false. Show message accordingly
+    return HttpResponseRedirect('/overview/')
+
 def deletenode(request, node_id):
     #TODO: turn into DELETE request? completely RESTify?
-    #TODO: introduce checks
-    #TODO: call ProviderController.delete()
+    #TODO: needs confirmation dialog
     node = Instance.objects.get(id=node_id)
-    node.delete()
+    result = node.destroy()
+    #TODO: result true or false. Show message accordingly
+    if result: node.delete()
     return HttpResponseRedirect('/overview/')

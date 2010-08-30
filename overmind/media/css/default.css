@@ -2,7 +2,6 @@
 
 article, footer, header, nav { display: block; }
 ul { list-style: none; }
-a.action { float: right; font-size: smaller; }
 
 body {
     margin: 0 auto;
@@ -59,7 +58,7 @@ header nav { display: table-cell; }
 
 #maincontent {
     display: table-cell;
-    width: 700px;
+    width: 800px;
     padding-left: 22px;
     padding-top: 20px;
     padding-right: 1em;
@@ -79,9 +78,13 @@ header nav { display: table-cell; }
     }
     
     #maincontent ul.node li:hover {
-/*         cursor: pointer; */
         background: #EAEAEA;
     }
+    
+    span.actions_area { float: right; text-align: right; }
+    span.actions_area a { margin-left: 5px; font-size: smaller; }
+    
+    #maincontent form { padding: 1em; }
 
 aside {
     display: table-cell;
