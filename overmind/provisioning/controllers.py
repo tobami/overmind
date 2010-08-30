@@ -43,7 +43,7 @@ class ProviderController():
     
     def spawn_new_instance(self, form):
         name   = form.cleaned_data['name']
-        #TODO: get image, size, location id from the form image name
+        #TODO:get image, size, location id from the form image name
         image  = None
         flavor = None
         realm  = None
