@@ -74,8 +74,6 @@ class ProviderController():
         node = self.conn.create_node(
             name=name, image=image, size=flavor, location=realm
         )
-        print node.uuid
-        print node.id
         return { 'public_ip': node.public_ip[0], 'uuid': node.uuid }
     
     def reboot_node(self, instance):

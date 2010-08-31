@@ -2,7 +2,7 @@ from django.db import models
 from overmind.provisioning.controllers import ProviderController
 
 PROVIDER_META = {
-    'Dummy': {'access_key': 'DAccess Key', 'secret_key': None},
+    #'Dummy': {'access_key': 'DAccess Key', 'secret_key': None},
     'Dummy_libcloud': {'access_key': 'Dummy Access Key', 'secret_key': None},
     'EC2_US_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_US_EAST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
@@ -30,12 +30,13 @@ class Provider(models.Model):
         if PROVIDER_META[self.provider_type]['secret_key'] is not None:
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDER_META[self.provider_type]['secret_key']
+        # Check that it is a valid account
+        controller = ProviderController(self)
+        controller.get_nodes()
         super(Provider, self).save(*args, **kwargs)
     
     def import_nodes(self):
         p = ProviderController(self)
-        print p.get_realms()
-        print p.get_nodes()
         nodes = p.get_nodes()
         for node in nodes:
             inst = Instance(
@@ -86,7 +87,6 @@ class Instance(models.Model):
     )
     # Standard instance fields
     name              = models.CharField(unique=True, max_length=25)
-    #TODO: What should the instance_id legth be?
     instance_id       = models.CharField(max_length=50)
     provider          = models.ForeignKey(Provider)
     state             = models.CharField(
