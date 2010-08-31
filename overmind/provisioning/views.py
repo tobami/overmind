@@ -39,7 +39,8 @@ def newprovider(request):
     return render_to_response('provider.html', { 'form': form })
 
 def deleteprovider(request, provider_id):
-    #TODO: Needs confirmation dialog (all nodes will be deleted, not destroyed)
+    #TODO: Needs confirmation dialog
+    # (all nodes will be deleted from DB, not destroyed)
     #TODO: turn into DELETE request? completely RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
