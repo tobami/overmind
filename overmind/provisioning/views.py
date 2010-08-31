@@ -20,11 +20,16 @@ def newprovider(request):
             try:
                 newprovider = form.save()
             except TypeError:
-                return render_to_response('provider.html', { 'form': form })
-                #TODO: return form error: invalid credentials for amazon
+                # Amazon's bad credentials
+                return render_to_response('provider.html', {
+                    'form': form,
+                    'error': 'Invalid account credentials',
+                })
             except InvalidCredsException:
-                return render_to_response('provider.html', { 'form': form })
-                #TODO: return a form error
+                return render_to_response('provider.html', {
+                    'form': form,
+                    'error': 'Invalid account credentials',
+                })
             newprovider.import_nodes()
             
             return HttpResponseRedirect('/overview/') #Redirect after POST
@@ -60,7 +65,7 @@ def newnode(request):
                 return HttpResponseRedirect('/overview/')
     else:
         if "provider" in request.GET:
-            form = InstanceForm(request.GET.get("provider"), initial={'providier': request.GET.get("provider")})
+            form = InstanceForm(request.GET.get("provider"))
         else:
             raise Exception
             #TODO: proper HttpError

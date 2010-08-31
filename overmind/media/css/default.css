@@ -109,6 +109,27 @@ aside {
         padding: 0.4em;
     }
 
+form ul.errorlist li, p.error { color: red; }
+
+/* Loading box of width=height=100px with a spinner placed at the center */
+#loading {
+    width:100px;
+    height: 100px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background:url(/media/images/ajax-loader.gif) no-repeat center #fff;
+    text-align:center;
+    padding:10px;
+    font:normal 16px Tahoma, Geneva, sans-serif;
+    border:1px solid #666;
+    margin-left: -50px;
+    margin-top: -50px;
+    z-index:2;
+    overflow: auto;
+}
+
+
 /* new clearfix */
 .clearfix:after {
     visibility: hidden;

@@ -1,8 +1,14 @@
 from django import forms
 from django.forms import ModelForm
-from overmind.provisioning.models import Provider, Instance
+from overmind.provisioning.models import Provider, Instance, PROVIDER_META
 
 class ProviderForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(ProviderForm, self).__init__(*args, **kwargs)
+        #provider_type = self.fields['provider_type'].initial
+        #if PROVIDER_META[provider_type]['secret_key'] is not None:
+            #self.fields['secret_key'] = forms.CharField(widget=forms.HiddenInput)
+    
     class Meta:
         model = Provider
 

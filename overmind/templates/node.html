@@ -19,16 +19,22 @@
     </ul>
     <hr />
     <div id="form"></div>
+    <div id="loading"></div>
     <script>
         function getProviderForm() {
             var provider = $("input:radio[name='provider']:checked").val();
-            $("#form").fadeOut("fast", function() {
-                $(this).load("new/?provider=" + provider);
-                $(this).fadeIn();
+            var duration = 100;
+            var toOpacity = 0.3;
+            $("#form").fadeTo(duration, toOpacity);
+            $('#loading').show();
+            $("#form").load("new/?provider=" + provider, function(responseText) {
+                $('#loading').hide();
+                $("#form").fadeTo(duration,1);
             });
         }
         
         $(function() {
+            $('#loading').hide();
             $("input:radio[name='provider']").change(getProviderForm);
         });
     </script>
