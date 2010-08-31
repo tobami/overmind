@@ -74,6 +74,8 @@ class ProviderController():
         node = self.conn.create_node(
             name=name, image=image, size=flavor, location=realm
         )
+        print node.uuid
+        print node.id
         return { 'public_ip': node.public_ip[0], 'uuid': node.uuid }
     
     def reboot_node(self, instance):
@@ -87,6 +89,8 @@ class ProviderController():
     
     def destroy_node(self, instance):
         #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
+        if self.provider.provider_type == "Dummy_libcloud":
+            return True
         node = None
         for n in self.conn.list_nodes():
             if n.uuid == instance.instance_id:
