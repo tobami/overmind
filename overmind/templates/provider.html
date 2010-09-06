@@ -1,12 +1,51 @@
 {% extends "base.html" %}
 {% block title %}: Add a Provider{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
 {% block content %}
     <h2>Add a new hatchery</h2>
-    {% if error %}<p class="error">Error: {{ error }}</p>{% endif %}
-    <form action="" method="post">
-    {{ form.as_p }}
-    <input type="submit" value="Add" />
+    <ul>
+        <li>
+            <h3>Provider</h3>
+            <ul>{% for provider in provider_types %}
+            <li>
+                <input id="provider_{{ provider }}" type="radio" name="provider_type" value="{{ provider }}" />
+                <label for="provider_{{ provider }}">{{ provider }}</label>
+            </li>{% endfor %}
+            </ul>
+        </li>
+    </ul>
+    <hr />
+    <form id="newprovider" action="new/" method="post"></form>
+    <div id="loading"></div>
+    
     </form>
+
+    <script>
+        var toOpacity = 0.3;
+        var duration = 100;
+        
+        function getProviderForm() {
+            var provider_type = $("input:radio[name='provider_type']:checked").val();
+            $("form#newprovider").fadeTo(duration, toOpacity);
+            $('#loading').show();
+            $("form#newprovider").load("new/?provider_type=" + provider_type, function(responseText) {
+                $('#loading').hide();
+                $("form#newprovider").fadeTo(duration,1);
+            });
+        }
+        
+        $(function() {
+            $('#loading').hide();
+            $("input:radio[name='provider_type']").change(getProviderForm);
+            
+            $('form#newprovider').submit(function() {
+                ajaxSubmit($(this));
+                //prevent form from submitting
+                return false;
+            });
+        });
+    </script>
 {% endblock %}
-{% block sidebar %}
-{% endblock %}
+

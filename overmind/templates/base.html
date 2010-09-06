@@ -11,7 +11,7 @@
     <![endif]-->
 </head>
 <body>
-    <div id="hwrapper">
+<div id="hwrapper">
     <header>
         <h1>Overmind</h1>
         <nav>
@@ -22,11 +22,10 @@
             </ul>
         </nav>
     </header>
-    </div>
-    <div id="content">
-        {% block sidebar %}{% endblock %}
-        <div id="maincontent">{% block content %}{% endblock %}</div>
-    </div>
-    <footer>{% block footer %}{% endblock %}</footer>
+</div>
+<div id="content">{% block sidebar %}{% endblock %}
+    <div id="maincontent">{% block content %}{% endblock %}</div>
+</div>
+<footer>{% block footer %}{% endblock %}</footer>
 </body>
 </html>

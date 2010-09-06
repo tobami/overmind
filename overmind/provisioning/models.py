@@ -2,7 +2,6 @@ from django.db import models
 from overmind.provisioning.controllers import ProviderController
 
 PROVIDER_META = {
-    #'Dummy': {'access_key': 'DAccess Key', 'secret_key': None},
     'Dummy_libcloud': {'access_key': 'Dummy Access Key', 'secret_key': None},
     'EC2_US_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_US_EAST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
@@ -21,8 +20,6 @@ class Provider(models.Model):
     )
     access_key     = models.CharField("Access Key", max_length=100)
     secret_key     = models.CharField("Secret Key", max_length=100, blank=True)
-    #default_image  = models.CharField(blank=True, max_length=40)
-    #default_realm  = models.CharField(blank=True, max_length=20)
     
     def save(self, *args, **kwargs):
         self._meta.get_field('access_key').verbose_name = \
@@ -32,7 +29,8 @@ class Provider(models.Model):
                 PROVIDER_META[self.provider_type]['secret_key']
         # Check that it is a valid account
         controller = ProviderController(self)
-        controller.get_nodes()
+        controller.get_realms()
+        # Save
         super(Provider, self).save(*args, **kwargs)
     
     def import_nodes(self):
@@ -46,7 +44,7 @@ class Provider(models.Model):
                 public_ip   = node.public_ip[0],
             )
             inst.save()
-    
+
     def get_flavors(self):
         controller = ProviderController(self)
         return controller.get_flavors()
@@ -86,7 +84,7 @@ class Instance(models.Model):
         (u'DE', u'Decommisioned'),
     )
     # Standard instance fields
-    name              = models.CharField(unique=True, max_length=25)
+    name              = models.CharField(max_length=25)
     instance_id       = models.CharField(max_length=50)
     provider          = models.ForeignKey(Provider)
     state             = models.CharField(
@@ -100,6 +98,7 @@ class Instance(models.Model):
     production_state  = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
     )
+    unique_together   = ('name', 'provider')
     unique_together   = ('instance_id', 'provider')
     
     def __unicode__(self):

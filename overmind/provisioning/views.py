@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-from overmind.provisioning.models import Provider, Instance
+from overmind.provisioning.models import Provider, Instance, PROVIDER_META
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from libcloud.types import InvalidCredsException
 
@@ -13,10 +13,18 @@ def overview(request):
         'provider_list': provider_list,
     })
 
+def provider(request):
+    provider_types = PROVIDER_META.keys()
+    provider_types.sort()
+    return render_to_response('provider.html', {
+        'provider_types': provider_types,
+    })
+
 def newprovider(request):
-    if request.method == 'POST': # If the form has been submitted...
-        form = ProviderForm(request.POST) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
+    if request.method == 'POST':
+        provider_type = request.POST.get("provider_type")
+        form = ProviderForm(provider_type, request.POST)
+        if form.is_valid():
             try:
                 newprovider = form.save()
             except TypeError:
@@ -32,16 +40,20 @@ def newprovider(request):
                 })
             newprovider.import_nodes()
             
-            return HttpResponseRedirect('/overview/') #Redirect after POST
+            return HttpResponse('<p>success</p>')
     else:
-        form = ProviderForm() # An unbound form
-
-    return render_to_response('provider.html', { 'form': form })
+        if "provider_type" in request.GET:
+            form = ProviderForm(request.GET.get("provider_type"))
+        else:
+            raise Exception
+            #TODO: proper HttpError
+    
+    return render_to_response('provider_form.html', { 'form': form })
 
 def deleteprovider(request, provider_id):
     #TODO: Needs confirmation dialog
     # (all nodes will be deleted from DB, not destroyed)
-    #TODO: turn into DELETE request? completely RESTify?
+    #TODO: turn into DELETE request? RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
     return HttpResponseRedirect('/overview/')
@@ -63,7 +75,7 @@ def newnode(request):
                 inst.instance_id = data_from_provider['uuid']
                 inst.public_ip   = data_from_provider['public_ip']
                 inst.save()
-                return HttpResponseRedirect('/overview/')
+                return HttpResponse('<p>success</p>')
     else:
         if "provider" in request.GET:
             form = InstanceForm(request.GET.get("provider"))

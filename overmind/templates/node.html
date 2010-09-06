@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% block title %}: New Node{% endblock %}
 
-{% block sidebar %}
-{% endblock %}
+{% block sidebar %}{% endblock %}
 
 {% block content %}
     <h2>Add a new node</h2>
@@ -18,24 +17,32 @@
         </li>
     </ul>
     <hr />
-    <div id="form"></div>
+    <form id="newnode" action="new/" method="post"></form>
     <div id="loading"></div>
+    
     <script>
-        function getProviderForm() {
+        var toOpacity = 0.3;
+        var duration = 100;
+        
+        function getNodeForm() {
             var provider = $("input:radio[name='provider']:checked").val();
-            var duration = 100;
-            var toOpacity = 0.3;
-            $("#form").fadeTo(duration, toOpacity);
+            $("form#newnode").fadeTo(duration, toOpacity);
             $('#loading').show();
-            $("#form").load("new/?provider=" + provider, function(responseText) {
+            $("form#newnode").load("new/?provider=" + provider, function(responseText) {
                 $('#loading').hide();
-                $("#form").fadeTo(duration,1);
+                $("form#newnode").fadeTo(duration,1);
             });
         }
         
         $(function() {
             $('#loading').hide();
-            $("input:radio[name='provider']").change(getProviderForm);
+            $("input:radio[name='provider']").change(getNodeForm);
+            
+            $('form#newnode').submit(function() {
+                ajaxSubmit($(this));
+                //prevent form from submitting
+                return false;
+            });
         });
     </script>
 {% endblock %}

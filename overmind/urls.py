@@ -16,10 +16,11 @@ if settings.DEBUG:
 
 urlpatterns += patterns('',
     (r'^overview/$', 'overmind.provisioning.views.overview'),
-    (r'^provider/$', 'overmind.provisioning.views.newprovider'),
+    (r'^provider/$', 'overmind.provisioning.views.provider'),
     (r'^node/$', 'overmind.provisioning.views.node'),
     
     #Create
+    (r'^provider/new/$', 'overmind.provisioning.views.newprovider'),
     (r'^node/new/$', 'overmind.provisioning.views.newnode'),
     #Reset
     (r'^node/(?P<node_id>\d+)/reboot/$', 'overmind.provisioning.views.rebootnode'),
