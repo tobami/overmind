@@ -6,7 +6,7 @@ PROVIDER_META = {
     'EC2_US_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_US_EAST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
     'EC2_EU_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
-    'Rackspace': {'access_key': 'Rackspace User', 'secret_key': 'Rackspace Key'},
+    'Rackspace': {'access_key': 'Username', 'secret_key': 'API Access Key'},
 }
 
 provider_meta_keys = PROVIDER_META.keys()
@@ -16,7 +16,7 @@ PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
 class Provider(models.Model):
     name           = models.CharField(unique=True, max_length=25)
     provider_type  = models.CharField(
-        default='EC2_US_EAST', max_length=20, choices=PROVIDER_CHOICES
+        default='EC2_US_EAST', max_length=25, choices=PROVIDER_CHOICES
     )
     access_key     = models.CharField("Access Key", max_length=100)
     secret_key     = models.CharField("Secret Key", max_length=100, blank=True)
@@ -90,9 +90,9 @@ class Instance(models.Model):
     state             = models.CharField(
         default='BE', max_length=2, choices=STATE_CHOICES
     )
-    hostname          = models.CharField(max_length=20)
-    internal_ip       = models.CharField(max_length=20)
-    public_ip         = models.CharField(max_length=20)
+    hostname          = models.CharField(max_length=25)
+    internal_ip       = models.CharField(max_length=25)
+    public_ip         = models.CharField(max_length=25)
     
     # Overmind related fields
     production_state  = models.CharField(

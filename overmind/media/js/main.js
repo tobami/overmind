@@ -19,7 +19,7 @@ function ajaxSubmit(form) {
         //transition
         form.fadeTo(duration, toOpacity);
         $('#loading').show();
-        console.log('kuku');
+        
         //send data to server for validation
         $.ajax({
             url: formUrl,

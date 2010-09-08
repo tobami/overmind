@@ -29,12 +29,12 @@ def newprovider(request):
                 newprovider = form.save()
             except TypeError:
                 # Amazon's bad credentials
-                return render_to_response('provider.html', {
+                return render_to_response('provider_form.html', {
                     'form': form,
                     'error': 'Invalid account credentials',
                 })
             except InvalidCredsException:
-                return render_to_response('provider.html', {
+                return render_to_response('provider_form.html', {
                     'form': form,
                     'error': 'Invalid account credentials',
                 })

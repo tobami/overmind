@@ -10,7 +10,10 @@ class ProviderForm(ModelForm):
         self.fields['access_key'].label = PROVIDER_META[provider_type]['access_key']
         self.fields['secret_key'].label = PROVIDER_META[provider_type]['secret_key']
         if PROVIDER_META[provider_type]['secret_key'] is None:
-            self.fields['secret_key'].widget = forms.HiddenInput()
+            self.fields['secret_key'].widget   = forms.HiddenInput()
+        else:
+            self.fields['secret_key'].widget   = forms.PasswordInput()
+            self.fields['secret_key'].required = True
     
     class Meta:
         model = Provider
