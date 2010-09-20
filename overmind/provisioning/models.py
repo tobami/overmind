@@ -1,17 +1,12 @@
 from django.db import models
 from overmind.provisioning.controllers import ProviderController
+from provider_meta import PROVIDERS
 
-PROVIDER_META = {
-    'Dummy_libcloud': {'access_key': 'Dummy Access Key', 'secret_key': None},
-    'EC2_US_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
-    'EC2_US_EAST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
-    'EC2_EU_WEST': {'access_key': 'AWS Access Key ID', 'secret_key': 'AWS Secret Key ID'},
-    'Rackspace': {'access_key': 'Username', 'secret_key': 'API Access Key'},
-}
 
-provider_meta_keys = PROVIDER_META.keys()
+provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
 PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
+
 
 class Provider(models.Model):
     name           = models.CharField(unique=True, max_length=25)
@@ -22,16 +17,21 @@ class Provider(models.Model):
     secret_key     = models.CharField("Secret Key", max_length=100, blank=True)
     
     def save(self, *args, **kwargs):
+        # Define proper key field names
         self._meta.get_field('access_key').verbose_name = \
-            PROVIDER_META[self.provider_type]['access_key']
-        if PROVIDER_META[self.provider_type]['secret_key'] is not None:
+            PROVIDERS[self.provider_type]['access_key']
+        if PROVIDERS[self.provider_type]['secret_key'] is not None:
             self._meta.get_field('secret_key').verbose_name = \
-                PROVIDER_META[self.provider_type]['secret_key']
-        # Check that it is a valid account
-        controller = ProviderController(self)
-        controller.get_realms()
-        # Save
-        super(Provider, self).save(*args, **kwargs)
+                PROVIDERS[self.provider_type]['secret_key']
+        # Check and save new provider
+        try:
+            controller = ProviderController(self)
+            # Check that it is a valid account
+            controller.get_nodes()
+            # Save
+            super(Provider, self).save(*args, **kwargs)
+        except Exception, e:
+            raise e
     
     def import_nodes(self):
         p = ProviderController(self)

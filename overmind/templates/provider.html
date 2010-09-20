@@ -4,14 +4,14 @@
 {% block sidebar %}{% endblock %}
 
 {% block content %}
-    <h2>Add a new hatchery</h2>
+    <h2>Add a new Provider</h2>
     <ul>
         <li>
             <h3>Provider</h3>
             <ul>{% for provider in provider_types %}
             <li>
-                <input id="provider_{{ provider }}" type="radio" name="provider_type" value="{{ provider }}" />
-                <label for="provider_{{ provider }}">{{ provider }}</label>
+                <input id="provider_{{ provider.0 }}" type="radio" name="provider_type" value="{{ provider.0 }}" />
+                <label for="provider_{{ provider.0 }}">{{ provider.1 }}</label>
             </li>{% endfor %}
             </ul>
         </li>

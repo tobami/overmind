@@ -1,7 +1,8 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-from overmind.provisioning.models import Provider, Instance, PROVIDER_META
+from overmind.provisioning.models import Provider, Instance
 from overmind.provisioning.forms import ProviderForm, InstanceForm
+from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
 
 
@@ -14,10 +15,13 @@ def overview(request):
     })
 
 def provider(request):
-    provider_types = PROVIDER_META.keys()
+    provider_types = PROVIDERS.keys()
     provider_types.sort()
+    providers = []
+    for p in provider_types:
+        providers.append([p, PROVIDERS[p]['display_name']])
     return render_to_response('provider.html', {
-        'provider_types': provider_types,
+        'provider_types': providers,
     })
 
 def newprovider(request):
@@ -38,6 +42,13 @@ def newprovider(request):
                     'form': form,
                     'error': 'Invalid account credentials',
                 })
+            except Exception, e:
+                # Unexpected error
+                return render_to_response('provider_form.html', {
+                    'form': form,
+                    'error': e,
+                })
+            #TODO: defer importing
             newprovider.import_nodes()
             
             return HttpResponse('<p>success</p>')
@@ -51,8 +62,6 @@ def newprovider(request):
     return render_to_response('provider_form.html', { 'form': form })
 
 def deleteprovider(request, provider_id):
-    #TODO: Needs confirmation dialog
-    # (all nodes will be deleted from DB, not destroyed)
     #TODO: turn into DELETE request? RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
