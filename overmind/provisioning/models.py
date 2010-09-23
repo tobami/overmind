@@ -65,10 +65,9 @@ class Provider(models.Model):
         return controller.get_realms()
     
     def spawn_new_instance(self, data):
+        # first save() so extra_param gets updated
+        self.save()
         controller = ProviderController(self)
-        if 'extra_param' in PROVIDERS[self.provider_type].keys():
-            controller.provider.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
-            controller.provider.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
         return controller.spawn_new_instance(data)
     
     def __unicode__(self):
