@@ -55,10 +55,7 @@ class ProviderController():
             return None
         
         # Choose node creation strategy
-        try:
-            features = self.conn.features.get('create_node')
-        except AttributeError:
-            features = []
+        features = self.conn.features.get('create_node', [])
         
         try:
             if "ssh_key" in features:
@@ -87,7 +84,7 @@ class ProviderController():
                 )
             else:
                 # Create node without any extra steps nor parameters
-                print "Provider: no features. Create node without parameters"
+                print "Provider: no features. Just call create_node"
                 args = {
                     self.provider.extra_param_name: self.provider.extra_param_value
                 }
@@ -131,7 +128,7 @@ class ProviderController():
     def get_images(self):
         #TODO: remove EC2 if
         if self.provider.provider_type.startswith("EC2"):
-            images = [image for image in self.conn.list_images() if image.id.startswith('ami')]
+            images = [image for image in self.images if image.id.startswith('ami')]
         else:
             images = self.conn.list_images()
         return images

@@ -6,12 +6,12 @@
     </ul>
 {% endblock %}
 {% block sidebar %}
-    <aside>
-        <section>
+    <div id="sidebar">
+        <div class="section">
             <h3>Providers</h3>
             <ul>{% for provider in provider_list %}
                 <li>{{ provider.name }}<span class="actions_area"><a href="/provider/{{ provider.id }}/delete/">delete</a></li>{% endfor %}
             </ul>
-        </section>
-    </aside>
+        </div>
+    </div>
 {% endblock %}

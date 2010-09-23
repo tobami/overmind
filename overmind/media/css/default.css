@@ -86,26 +86,26 @@ header nav { display: table-cell; }
     
     #maincontent form { padding: 1em; }
 
-aside {
+div#sidebar {
     display: table-cell;
     width: 280px;
     padding: 1em;
     background: url("/media/images/sidebar_background.png") top left;
 }
 
-    aside section {
+    div#sidebar div.section {
         padding: 11px 22px;
         background: url("/media/images/sidebar_section_background.png") repeat-x;
         -moz-border-radius: 11px;
         -webkit-border-radius: 11px;
     }
     
-    aside section h3 { margin-bottom: 4px; font-size: 120%; }
-    aside section ul {
+    div#sidebar div.section h3 { margin-bottom: 4px; font-size: 120%; }
+    div#sidebar div.section ul {
 /*         margin: 0 0 0 22px; */
         list-style: none;
     }
-    aside section ul li {
+    div#sidebar div.section ul li {
         padding: 0.4em;
     }
 
