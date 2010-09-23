@@ -131,7 +131,7 @@ class ProviderController():
     def get_images(self):
         #TODO: remove EC2 if
         if self.provider.provider_type.startswith("EC2"):
-            images = [image for image in self.images if image.id.startswith('ami')]
+            images = [image for image in self.conn.list_images() if image.id.startswith('ami')]
         else:
             images = self.conn.list_images()
         return images
