@@ -18,7 +18,7 @@ class ProviderForm(ModelForm):
     
     class Meta:
         model = Provider
-
+        fields = ('name', 'provider_type', 'access_key', 'secret_key')
 
 class InstanceForm(ModelForm):
     provider = forms.ModelChoiceField(

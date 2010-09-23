@@ -79,12 +79,17 @@ def newnode(request):
         if form.is_valid():
             inst = form.save(commit = False)
             data_from_provider = inst.provider.spawn_new_instance(form)
-            if data_from_provider is not None:
-                #TODO: do extra things with data_from_provider
+            if data_from_provider is None:
+                return render_to_response('node_form.html', {
+                    'form': form,
+                    'error': 'Could not create Node',
+                })
+            else:
                 inst.instance_id = data_from_provider['uuid']
                 inst.public_ip   = data_from_provider['public_ip']
                 inst.save()
                 return HttpResponse('<p>success</p>')
+
     else:
         if "provider" in request.GET:
             form = InstanceForm(request.GET.get("provider"))

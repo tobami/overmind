@@ -79,3 +79,6 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'overmind.provisioning',
 )
+
+PUBLIC_KEY_FILE = "id_rsa.pub"
+PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()

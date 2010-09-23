@@ -9,12 +9,15 @@ PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
 
 
 class Provider(models.Model):
-    name           = models.CharField(unique=True, max_length=25)
-    provider_type  = models.CharField(
-        default='EC2_US_EAST', max_length=25, choices=PROVIDER_CHOICES
-    )
-    access_key     = models.CharField("Access Key", max_length=100)
-    secret_key     = models.CharField("Secret Key", max_length=100, blank=True)
+    name              = models.CharField(unique=True, max_length=25)
+    provider_type     = models.CharField(
+        default='EC2_US_EAST', max_length=25, choices=PROVIDER_CHOICES)
+    access_key        = models.CharField("Access Key", max_length=100)
+    secret_key        = models.CharField("Secret Key", max_length=100, blank=True)
+    extra_param_name  = models.CharField(
+        "Extra parameter name", max_length=30, blank=True)
+    extra_param_value = models.CharField(
+        "Extra parameter value", max_length=30, blank=True)
     
     def save(self, *args, **kwargs):
         # Define proper key field names
@@ -23,6 +26,10 @@ class Provider(models.Model):
         if PROVIDERS[self.provider_type]['secret_key'] is not None:
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
+        if 'extra_param' in PROVIDERS[self.provider_type].keys():
+            self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
+            self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
+        
         # Check and save new provider
         try:
             controller = ProviderController(self)

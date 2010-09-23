@@ -1,7 +1,8 @@
 from libcloud import types
+from libcloud.base import NodeAuthPassword, NodeAuthSSHKey
 from libcloud.providers import get_driver
-import overmind.provisioning.models
-
+from libcloud.deployment import SSHKeyDeployment
+from django.conf import settings
 
 class ProviderController():
     def __init__(self, provider):
@@ -9,12 +10,12 @@ class ProviderController():
         
         # Get libcloud provider type
         try:
-            provider_type = types.Provider.__dict__[provider.provider_type]
+            driver_type = types.Provider.__dict__[self.provider.provider_type]
         except KeyError:
-            raise Exception, "Unknown provider %s" % provider.provider_type
+            raise Exception, "Unknown provider %s" % self.provider.provider_type
         
         # Get driver from libcloud
-        Driver = get_driver(provider_type)
+        Driver = get_driver(driver_type)
         # Providers with only one access key
         if self.provider.secret_key == "":
             self.conn = Driver(self.provider.access_key)
@@ -52,10 +53,57 @@ class ProviderController():
         if realm is None:
             #Abort: form realm doesn't correspond to any provider location'
             return None
-        node = self.conn.create_node(
-            name=name, image=image, size=flavor, location=realm
-        )
-        return { 'public_ip': node.public_ip[0], 'uuid': node.uuid }
+        
+        # Choose node creation strategy
+        try:
+            features = self.conn.features.get('create_node')
+        except AttributeError:
+            features = []
+        
+        try:
+            if "ssh_key" in features:
+                # Pass on public key and we are done
+                print "Provider: ssh_key. Pass on key"
+                node = self.conn.create_node(
+                    name=name, image=image, size=flavor, location=realm,
+                    auth=NodeAuthSSHKey(settings.PUBLIC_KEY)
+                )
+            elif 'generates_password' in features:
+                # Use deploy_node to deploy public key
+                print "Provider: generates_password. Use deploy_node"
+                pubkey = SSHKeyDeployment(settings.PUBLIC_KEY) 
+                node = self.conn.deploy_node(
+                    name=name, image=image, size=flavor, location=realm,
+                    deploy=pubkey
+                )
+            elif 'password' in features:
+                # Pass on password and use deploy_node to deploy public key
+                pubkey = SSHKeyDeployment(settings.PUBLIC_KEY)
+                rpassword = generate_random_password(15)
+                print "Provider: password. Pass on password=%s" % rpassword
+                node = self.conn.deploy_node(
+                    name=name, image=image, size=flavor, location=realm,
+                    auth=NodeAuthPassword(rpassword), deploy=pubkey
+                )
+            else:
+                # Create node without any extra steps nor parameters
+                print "Provider: no features. Create node without parameters"
+                args = {
+                    self.provider.extra_param_name: self.provider.extra_param_value
+                }
+                node = self.conn.create_node(
+                    name=name, image=image, size=flavor, location=realm, **args
+                )
+        except Exception, e:
+            print "Exception of type %s" % type(e)
+            print e
+            return None
+        
+        return {
+            'public_ip': node.public_ip[0],
+            'uuid': node.uuid,
+            'extra': node.extra
+        }
     
     def reboot_node(self, instance):
         #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
@@ -81,6 +129,7 @@ class ProviderController():
         return self.conn.list_nodes()
     
     def get_images(self):
+        #TODO: remove EC2 if
         if self.provider.provider_type.startswith("EC2"):
             images = [image for image in self.images if image.id.startswith('ami')]
         else:
@@ -124,3 +173,12 @@ class DummySize():
     def __init__(self, id, name):
         self.id = id
         self.name = name
+
+def generate_random_password(length):
+    import random, string
+    chars = []
+    chars.extend([i for i in string.ascii_letters])
+    chars.extend([i for i in string.digits])
+    chars.extend([i for i in '\'"!@#$%&*()-_=+[{}]~^,<.>;:/?'])
+
+    return ''.join([random.choice(chars) for i in range(length)])
