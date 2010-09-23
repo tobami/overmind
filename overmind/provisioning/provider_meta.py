@@ -12,19 +12,19 @@ PROVIDERS = {
         'display_name': 'EC2 US West',
         'access_key': 'AWS Access Key ID',
         'secret_key': 'AWS Secret Key ID',
-        'extra_param': ['ex_keyname', settings.EC2_KEYPAIR_NAME],
+        'extra_param': ['ex_keyname', settings.PUBLIC_KEY_FILE.split(".")[0]],
     },
     'EC2_US_EAST': {
         'display_name': 'EC2 US East',
         'access_key': 'AWS Access Key ID',
         'secret_key': 'AWS Secret Key ID',
-        'extra_param': ['ex_keyname', settings.EC2_KEYPAIR_NAME],
+        'extra_param': ['ex_keyname', settings.PUBLIC_KEY_FILE.split(".")[0]],
     },
     'EC2_EU_WEST': {
         'display_name': 'EC2 EU West',
         'access_key': 'AWS Access Key ID',
         'secret_key': 'AWS Secret Key ID',
-        'extra_param': ['ex_keyname', settings.EC2_KEYPAIR_NAME],
+        'extra_param': ['ex_keyname', settings.PUBLIC_KEY_FILE.split(".")[0]],
     },
     'RACKSPACE': {
         'display_name': 'Rackspace',
