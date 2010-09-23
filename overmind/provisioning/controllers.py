@@ -126,11 +126,10 @@ class ProviderController():
         return self.conn.list_nodes()
     
     def get_images(self):
+        images = self.conn.list_images()
         #TODO: remove EC2 if
         if self.provider.provider_type.startswith("EC2"):
-            images = [image for image in self.images if image.id.startswith('ami')]
-        else:
-            images = self.conn.list_images()
+            images = [image for image in images if image.id.startswith('ami')]
         return images
     
     def get_flavors(self):
