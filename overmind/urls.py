@@ -27,6 +27,6 @@ urlpatterns += patterns('',
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'overmind.provisioning.views.deleteprovider'),
     (r'^node/(?P<node_id>\d+)/destroy/$',\
-        'overmind.provisioning.views.deletenode'),
+        'overmind.provisioning.views.destroynode'),
     #(r'^', 'redirect_to', {'url': '/overview/'}),
 )

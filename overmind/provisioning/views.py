@@ -114,8 +114,8 @@ def rebootnode(request, node_id):
     #TODO: result true or false. Show message accordingly
     return HttpResponseRedirect('/overview/')
 
-def deletenode(request, node_id):
+def destroynode(request, node_id):
     #TODO: turn into DELETE request? completely RESTify?
     node = Instance.objects.get(id=node_id)
-    result = node.delete()
+    result = node.destroy()
     return HttpResponseRedirect('/overview/')

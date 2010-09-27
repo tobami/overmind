@@ -153,9 +153,10 @@ class Instance(models.Model):
     production_state  = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
     )
-    unique_together   = ('name', 'provider')
-    unique_together   = ('instance_id', 'provider')
-    unique_together   = ('public_ip', 'provider')
+    
+    unique_together   = ('provider', 'name', )
+    unique_together   = ('provider', 'instance_id')
+    unique_together   = ('provider', 'public_ip')
     
     def __unicode__(self):
         return str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id
@@ -167,12 +168,10 @@ class Instance(models.Model):
     
     def destroy(self):
         '''Returns True if the destroy was successful, otherwise False'''
-        controller = ProviderController(self.provider)
-        return controller.destroy_node(self)
-
-    def delete(self):
         if self.provider.supports('destroy'):
-            if not self.destroy():
+            controller = ProviderController(self.provider)
+            if controller.destroy_node(self):
+                self.delete()
+            else:
                 return False
-        super(Instance, self).delete()
         return True
