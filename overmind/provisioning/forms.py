@@ -41,17 +41,17 @@ class InstanceForm(ModelForm):
         else:
             self.fields['realm'] = forms.ChoiceField()
             for realm in p.get_realms():
-                self.fields['realm'].choices = [
+                self.fields['realm'].choices += [
                     (realm.id, realm.country + " - " + realm.name)
                 ]
             
             self.fields['flavor'] = forms.ChoiceField()
             for flavor in p.get_flavors():
-                self.fields['flavor'].choices = [(flavor.id, flavor.name)]
+                self.fields['flavor'].choices += [(flavor.id, flavor.name)]
                 
             self.fields['image'] = forms.ChoiceField()
             for img in p.get_images():
-                self.fields['image'].choices = [(img.id, img.name)]
+                self.fields['image'].choices += [(img.id, img.name)]
     
     class Meta:
         model  = Instance
