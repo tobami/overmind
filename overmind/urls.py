@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 from django.views.generic.simple import redirect_to
 from django.conf import settings
 
+
 urlpatterns = []
 
 if settings.DEBUG:
@@ -18,8 +19,8 @@ urlpatterns += patterns('',
     (r'^provider/new/$', 'overmind.provisioning.views.newprovider'),
     (r'^node/new/$', 'overmind.provisioning.views.newnode'),
     # Update
-    (r'^provider/(?P<provider_id>\d+)/update/$',\
-        'overmind.provisioning.views.updateprovider'),
+    (r'^provider/update/$',\
+        'overmind.provisioning.views.updateproviders'),
     # Reset
     (r'^node/(?P<node_id>\d+)/reboot/$', 'overmind.provisioning.views.rebootnode'),
     # Delete

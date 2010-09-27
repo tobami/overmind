@@ -2,7 +2,7 @@
 from django.conf import settings
 from overmind.provisioning import plugins
 
-PROVIDERS = {
+LIBCLOUD_PROVIDERS = {
     'DUMMY': {
         'display_name': 'Dummy Provider',
         'access_key': 'Dummy Access Key',
@@ -34,9 +34,18 @@ PROVIDERS = {
     },
 }
 
+PROVIDERS = {}
+
+def add_libcloud_providers():
+    for p in LIBCLOUD_PROVIDERS.keys():
+        PROVIDERS[p] = LIBCLOUD_PROVIDERS[p]
+        PROVIDERS[p]['supported_actions'] = ['create', 'destroy', 'reboot', 'list']
+
+add_libcloud_providers()
+
 def add_plugins():
-    plugin_list = plugins.get_plugins()
-    for p in plugin_list.keys():
-        PROVIDERS[p] = plugin_list[p]
+    plugin_dict = plugins.get_plugins()
+    for p in plugin_dict.keys():
+        PROVIDERS[p] = plugin_dict[p]
 
 add_plugins()

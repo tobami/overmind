@@ -3,15 +3,19 @@
 from libcloud.base import ConnectionKey, NodeDriver, Node
 from libcloud.types import NodeState
 
+
 display_name = "Dedicated Hardware"
 access_key   = None
 secret_key   = None
 form_fields  = ['ip']
+supported_actions = ['create']
+
 
 class Connection(ConnectionKey):
     '''Dummy connection'''
     def connect(self, host=None, port=None):
         pass
+
 
 class Driver(NodeDriver):
     name = display_name
@@ -31,7 +35,8 @@ class Driver(NodeDriver):
                  driver=self)
         return n
     
-    def list_nodes(self): return []
+    # TODO: remove dummy methods
+    # and catch NotImplemented Exceptions upstream (or check supported)
     def list_images(self): return []
     def list_sizes(self): return []
     def list_locations(self): return []

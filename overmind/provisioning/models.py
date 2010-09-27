@@ -6,6 +6,12 @@ provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
 PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
 
+class Action(models.Model):
+    name = models.CharField(unique=True, max_length=20)
+    show = models.BooleanField()
+    
+    def __unicode__(self):
+        return self.name
 
 class Provider(models.Model):
     name              = models.CharField(unique=True, max_length=25)
@@ -18,6 +24,8 @@ class Provider(models.Model):
         "Extra parameter name", max_length=30, blank=True)
     extra_param_value = models.CharField(
         "Extra parameter value", max_length=30, blank=True)
+    
+    actions = models.ManyToManyField(Action)
     
     def save(self, *args, **kwargs):
         # Define proper key field names
@@ -35,16 +43,33 @@ class Provider(models.Model):
         try:
             controller = ProviderController(self)
             # Check that it is a valid account
-            controller.get_nodes()
+            #controller.get_nodes()#TODO: try something different
             # Save
             super(Provider, self).save(*args, **kwargs)
+            
+            # Add supported actions
+            for action_name in PROVIDERS[self.provider_type]['supported_actions']:
+                try:
+                    action = Action.objects.get(name=action_name)
+                except Action.DoesNotExist:
+                    raise Exception, 'Unsupported action "%s" specified' % action_name
+                self.actions.add(action)
         except Exception, e:
             print type(e), e
             raise e
     
+    def supports(self, action):
+        try:
+            self.actions.get(name=action)
+            return True
+        except Action.DoesNotExist:
+            return False
+    
     def import_nodes(self):
+        if not self.supports('list'): return
         p = ProviderController(self)
         nodes = p.get_nodes()
+        # Import nodes not present in the DB
         for node in nodes:
             try:
                 i = Instance.objects.get(provider=self, public_ip=node.public_ip[0])
@@ -57,10 +82,20 @@ class Provider(models.Model):
                     public_ip   = node.public_ip[0],
                 )
                 new_instance.save()
+        # Update state and delete nodes in the DB not listed by the provider
+        for i in Instance.objects.all():
+            for node in nodes:
+                if i.public_ip == node.public_ip[0]:
+                    i.state = node.state
+                    return
+            # This instance was probably removed from the provider by another tool
+            # TODO: Needs user notification
+            i.delete()
+
     
     def update(self):
-        self.import_nodes()
         self.save()
+        self.import_nodes()
     
     def get_flavors(self):
         controller = ProviderController(self)
@@ -86,15 +121,16 @@ class Provider(models.Model):
 
 class Instance(models.Model):
     STATE_CHOICES = (
-        (u'BE', u'Begin'),
-        (u'PE', u'Pending'),
-        (u'RE', u'Rebooting'),
-        (u'CO', u'Configuring'),
-        (u'RU', u'Running'),
-        (u'TE', u'Terminated'),
-        (u'ST', u'Stopping'),
-        (u'SO', u'Stopped'),
-        (u'SA', u'Stranded'),
+        (u'Begin', u'Begin'),
+        (u'Pending', u'Pending'),
+        (u'Rebooting', u'Rebooting'),
+        (u'Configuring', u'Configuring'),
+        (u'Running', u'Running'),
+        (u'Terminated', u'Terminated'),
+        (u'Stopping', u'Stopping'),
+        (u'Stopped', u'Stopped'),
+        (u'Stranded', u'Stranded'),
+        (u'Unknown', u'Unknown'),
     )
     PRODUCTION_STATE_CHOICES = (
         (u'PR', u'Production'),
@@ -107,7 +143,7 @@ class Instance(models.Model):
     instance_id       = models.CharField(max_length=50)
     provider          = models.ForeignKey(Provider)
     state             = models.CharField(
-        default='BE', max_length=2, choices=STATE_CHOICES
+        default='Begin', max_length=20, choices=STATE_CHOICES
     )
     public_ip         = models.CharField(max_length=25)
     internal_ip       = models.CharField(max_length=25, blank=True)
@@ -133,3 +169,10 @@ class Instance(models.Model):
         '''Returns True if the destroy was successful, otherwise False'''
         controller = ProviderController(self.provider)
         return controller.destroy_node(self)
+
+    def delete(self):
+        if self.provider.supports('destroy'):
+            if not self.destroy():
+                return False
+        super(Instance, self).delete()
+        return True

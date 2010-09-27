@@ -61,9 +61,11 @@ def newprovider(request):
     
     return render_to_response('provider_form.html', { 'form': form })
 
-def updateprovider(request, provider_id):
-    provider = Provider.objects.get(id=provider_id)
-    provider.update()
+def updateproviders(request):
+    providers = Provider.objects.all()
+    for provider in providers:
+        if provider.supports('list'):
+            provider.update()
     return HttpResponseRedirect('/overview/')
 
 def deleteprovider(request, provider_id):
@@ -97,6 +99,7 @@ def newnode(request):
                     inst = form.save(commit = False)
                     inst.instance_id = data_from_provider['uuid']
                     inst.public_ip   = data_from_provider['public_ip']
+                    inst.state   = data_from_provider['state']
                     inst.save()
                     return HttpResponse('<p>success</p>')
 
@@ -113,9 +116,6 @@ def rebootnode(request, node_id):
 
 def deletenode(request, node_id):
     #TODO: turn into DELETE request? completely RESTify?
-    #TODO: needs confirmation dialog
     node = Instance.objects.get(id=node_id)
-    result = node.destroy()
-    #TODO: result true or false. Show message accordingly
-    if result: node.delete()
+    result = node.delete()
     return HttpResponseRedirect('/overview/')

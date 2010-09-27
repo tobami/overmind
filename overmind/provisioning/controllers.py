@@ -12,6 +12,14 @@ class ProviderController():
     extra_param_name = None
     extra_param_value = None
     
+    states = {
+        0: 'Running',
+        1: 'Rebooting',
+        2: 'Terminated',
+        3: 'Pending',
+        4: 'Unknown',
+    }
+    
     def __init__(self, provider):
         self.extra_param_name  = provider.extra_param_name
         self.extra_param_value = provider.extra_param_value
@@ -102,10 +110,15 @@ class ProviderController():
             print e
             return None
         
+        if node.state not in self.states:
+            node.state = 4
+        state = self.states[node.state]
+        
         return {
             'public_ip': node.public_ip[0],
             'uuid': node.uuid,
-            'extra': node.extra
+            'state': state,
+            'extra': node.extra,
         }
     
     def reboot_node(self, instance):

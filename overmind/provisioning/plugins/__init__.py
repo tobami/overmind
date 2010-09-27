@@ -21,6 +21,7 @@ def get_plugins():
                 'secret_key': _mod.secret_key,
                 'plugin'    : True,
                 'form_fields': _mod.form_fields,
+                'supported_actions': _mod.supported_actions,
             }
             plugin_list[driver_name] = meta
     return plugin_list
