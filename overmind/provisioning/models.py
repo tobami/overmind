@@ -2,7 +2,6 @@ from django.db import models
 from overmind.provisioning.controllers import ProviderController
 from provider_meta import PROVIDERS
 
-
 provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
 PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
@@ -12,8 +11,9 @@ class Provider(models.Model):
     name              = models.CharField(unique=True, max_length=25)
     provider_type     = models.CharField(
         default='EC2_US_EAST', max_length=25, choices=PROVIDER_CHOICES)
-    access_key        = models.CharField("Access Key", max_length=100)
+    access_key        = models.CharField("Access Key", max_length=100, blank=True)
     secret_key        = models.CharField("Secret Key", max_length=100, blank=True)
+    
     extra_param_name  = models.CharField(
         "Extra parameter name", max_length=30, blank=True)
     extra_param_value = models.CharField(
@@ -21,8 +21,9 @@ class Provider(models.Model):
     
     def save(self, *args, **kwargs):
         # Define proper key field names
-        self._meta.get_field('access_key').verbose_name = \
-            PROVIDERS[self.provider_type]['access_key']
+        if PROVIDERS[self.provider_type]['access_key'] is not None:
+            self._meta.get_field('access_key').verbose_name = \
+                PROVIDERS[self.provider_type]['access_key']
         if PROVIDERS[self.provider_type]['secret_key'] is not None:
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
@@ -38,20 +39,29 @@ class Provider(models.Model):
             # Save
             super(Provider, self).save(*args, **kwargs)
         except Exception, e:
+            print type(e), e
             raise e
     
     def import_nodes(self):
         p = ProviderController(self)
         nodes = p.get_nodes()
         for node in nodes:
-            inst = Instance(
-                name        = node.name,
-                instance_id = node.uuid,
-                provider    = self,
-                public_ip   = node.public_ip[0],
-            )
-            inst.save()
-
+            try:
+                i = Instance.objects.get(provider=self, public_ip=node.public_ip[0])
+                pass# Don't import already existing instance
+            except Instance.DoesNotExist:
+                new_instance = Instance(
+                    name        = node.name,
+                    instance_id = node.uuid,
+                    provider    = self,
+                    public_ip   = node.public_ip[0],
+                )
+                new_instance.save()
+    
+    def update(self):
+        self.import_nodes()
+        self.save()
+    
     def get_flavors(self):
         controller = ProviderController(self)
         return controller.get_flavors()
@@ -99,9 +109,9 @@ class Instance(models.Model):
     state             = models.CharField(
         default='BE', max_length=2, choices=STATE_CHOICES
     )
-    hostname          = models.CharField(max_length=25)
-    internal_ip       = models.CharField(max_length=25)
     public_ip         = models.CharField(max_length=25)
+    internal_ip       = models.CharField(max_length=25, blank=True)
+    hostname          = models.CharField(max_length=25, blank=True)
     
     # Overmind related fields
     production_state  = models.CharField(
@@ -109,10 +119,11 @@ class Instance(models.Model):
     )
     unique_together   = ('name', 'provider')
     unique_together   = ('instance_id', 'provider')
+    unique_together   = ('public_ip', 'provider')
     
     def __unicode__(self):
         return str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id
-
+    
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
         controller = ProviderController(self.provider)

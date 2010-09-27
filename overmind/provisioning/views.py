@@ -15,11 +15,12 @@ def overview(request):
     })
 
 def provider(request):
+    providers = []
     provider_types = PROVIDERS.keys()
     provider_types.sort()
-    providers = []
     for p in provider_types:
         providers.append([p, PROVIDERS[p]['display_name']])
+    
     return render_to_response('provider.html', {
         'provider_types': providers,
     })
@@ -32,7 +33,6 @@ def newprovider(request):
             try:
                 newprovider = form.save()
             except TypeError:
-                # Amazon's bad credentials
                 return render_to_response('provider_form.html', {
                     'form': form,
                     'error': 'Invalid account credentials',
@@ -40,7 +40,7 @@ def newprovider(request):
             except InvalidCredsException:
                 return render_to_response('provider_form.html', {
                     'form': form,
-                    'error': 'Invalid account credentials',
+                    'error': 'Invalid account credentials (exception)',
                 })
             except Exception, e:
                 # Unexpected error
@@ -48,7 +48,7 @@ def newprovider(request):
                     'form': form,
                     'error': e,
                 })
-            #TODO: defer importing
+            #TODO: defer importing to a work queue
             newprovider.import_nodes()
             
             return HttpResponse('<p>success</p>')
@@ -60,6 +60,11 @@ def newprovider(request):
             #TODO: proper HttpError
     
     return render_to_response('provider_form.html', { 'form': form })
+
+def updateprovider(request, provider_id):
+    provider = Provider.objects.get(id=provider_id)
+    provider.update()
+    return HttpResponseRedirect('/overview/')
 
 def deleteprovider(request, provider_id):
     #TODO: turn into DELETE request? RESTify?
@@ -73,31 +78,32 @@ def node(request):
     })
 
 def newnode(request):
+    error = None
     if request.method == 'POST':
         provider_id = request.POST.get("provider")
         form = InstanceForm(provider_id, request.POST)
         if form.is_valid():
-            inst = form.save(commit = False)
-            data_from_provider = inst.provider.spawn_new_instance(form)
-            if data_from_provider is None:
-                return render_to_response('node_form.html', {
-                    'form': form,
-                    'error': 'Could not create Node',
-                })
-            else:
-                inst.instance_id = data_from_provider['uuid']
-                inst.public_ip   = data_from_provider['public_ip']
-                inst.save()
-                return HttpResponse('<p>success</p>')
+            provider = Provider.objects.get(id=provider_id)
+            try:
+                i = Instance.objects.get(
+                    provider=provider, name=form.cleaned_data['name']
+                )
+                error = 'A node with that name already exists'
+            except Instance.DoesNotExist:
+                data_from_provider = provider.spawn_new_instance(form)
+                if data_from_provider is None:
+                    error = 'Could not create Node'
+                else:
+                    inst = form.save(commit = False)
+                    inst.instance_id = data_from_provider['uuid']
+                    inst.public_ip   = data_from_provider['public_ip']
+                    inst.save()
+                    return HttpResponse('<p>success</p>')
 
     else:
-        if "provider" in request.GET:
-            form = InstanceForm(request.GET.get("provider"))
-        else:
-            raise Exception
-            #TODO: proper HttpError
+        form = InstanceForm(request.GET.get("provider"))
     
-    return render_to_response('node_form.html', { 'form': form })
+    return render_to_response('node_form.html', { 'form': form, 'error': error })
 
 def rebootnode(request, node_id):
     node = Instance.objects.get(id=node_id)

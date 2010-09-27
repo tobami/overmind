@@ -14,12 +14,15 @@ urlpatterns += patterns('',
     (r'^provider/$', 'overmind.provisioning.views.provider'),
     (r'^node/$', 'overmind.provisioning.views.node'),
     
-    #Create
+    # Create
     (r'^provider/new/$', 'overmind.provisioning.views.newprovider'),
     (r'^node/new/$', 'overmind.provisioning.views.newnode'),
-    #Reset
+    # Update
+    (r'^provider/(?P<provider_id>\d+)/update/$',\
+        'overmind.provisioning.views.updateprovider'),
+    # Reset
     (r'^node/(?P<node_id>\d+)/reboot/$', 'overmind.provisioning.views.rebootnode'),
-    #Delete
+    # Delete
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'overmind.provisioning.views.deleteprovider'),
     (r'^node/(?P<node_id>\d+)/destroy/$',\

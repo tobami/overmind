@@ -1,5 +1,6 @@
 # List of supported providers and related info
 from django.conf import settings
+from overmind.provisioning import plugins
 
 PROVIDERS = {
     'DUMMY': {
@@ -32,3 +33,10 @@ PROVIDERS = {
         'secret_key': 'API Access Key',
     },
 }
+
+def add_plugins():
+    plugin_list = plugins.get_plugins()
+    for p in plugin_list.keys():
+        PROVIDERS[p] = plugin_list[p]
+
+add_plugins()

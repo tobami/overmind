@@ -2,7 +2,7 @@
 {% block title %}: Overview{% endblock %}
 {% block content %}
     <ul class="node">
-        {% for instance in instance_list %}<li>{{ instance }}<span class="actions_area"><a href="/node/{{ instance.id }}/reboot/">reboot</a><a href="javascript:confirmation('This action will completely destroy the instance {{ instance.name }} with IP {{ instance.public_ip }}','/node/{{ instance.id }}/destroy/');">destroy</a></span></li>{% endfor %}
+        {% for instance in instance_list %}<li>{{ instance }}<span class="actions"><a href="/node/{{ instance.id }}/reboot/">reboot</a><a href="javascript:confirmation('This action will completely destroy the instance {{ instance.name }} with IP {{ instance.public_ip }}','/node/{{ instance.id }}/destroy/');">destroy</a></span></li>{% endfor %}
     </ul>
 {% endblock %}
 {% block sidebar %}
@@ -10,7 +10,7 @@
         <div class="section">
             <h3>Providers</h3>
             <ul>{% for provider in provider_list %}
-                <li>{{ provider.name }}<span class="actions_area"><a href="/provider/{{ provider.id }}/delete/">delete</a></li>{% endfor %}
+                <li>{{ provider.name }}<span class="actions"><a href="/provider/{{ provider.id }}/update/">update</a><a href="/provider/{{ provider.id }}/delete/">delete</a></li>{% endfor %}
             </ul>
         </div>
     </div>

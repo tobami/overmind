@@ -80,5 +80,5 @@ INSTALLED_APPS = (
     'overmind.provisioning',
 )
 
-PUBLIC_KEY_FILE = "overmind.pub"
+PUBLIC_KEY_FILE = "id_rsa.pub"
 PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()
