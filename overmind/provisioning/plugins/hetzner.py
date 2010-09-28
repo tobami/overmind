@@ -73,6 +73,9 @@ class Driver(NodeDriver):
                  driver=self,
                  extra={
                     'location': el.get('dc'),
+                    'product': el.get('product'),
+                    'traffic': el.get('traffic'),
+                    'paid_until': el.get('paid_until'),
                  })
         return n
     
