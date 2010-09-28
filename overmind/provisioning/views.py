@@ -13,6 +13,7 @@ def overview(request):
     for i in Instance.objects.all():
         actions = i.provider.actions.filter(show=True)
         actions_list = []
+        
         if actions.filter(name='reboot'):
             actions_list.append({
                 'action': 'reboot',
@@ -75,7 +76,10 @@ def newprovider(request):
                     'error': e,
                 })
             #TODO: defer importing to a work queue
-            newprovider.import_nodes()
+            try:
+                newprovider.import_nodes()
+            except Exception, e:
+                print type(e), e
             
             return HttpResponse('<p>success</p>')
     else:

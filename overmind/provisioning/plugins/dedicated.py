@@ -1,5 +1,4 @@
 # Dedicated Hardware plugin
-#from providerplugin import BaseDriver
 from libcloud.base import ConnectionKey, NodeDriver, Node
 from libcloud.types import NodeState
 
