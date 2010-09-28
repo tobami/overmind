@@ -86,10 +86,10 @@ class Provider(models.Model):
         # Import nodes not present in the DB
         for node in nodes:
             try:
-                i = Instance.objects.get(provider=self, public_ip=node.public_ip[0])
+                i = Instance.objects.get(provider=self, instance_id=node.uuid)
                 pass# Don't import already existing instance
             except Instance.DoesNotExist:
-                print "Add instance:", node.name
+                print "Add instance:", node
                 new_instance = Instance(
                     name        = node.name,
                     instance_id = node.uuid,
@@ -103,16 +103,14 @@ class Provider(models.Model):
         for i in Instance.objects.filter(provider=self):
             found = False
             for node in nodes:
-                print i.provider.name, i.public_ip, node.public_ip[0]
-                if i.public_ip == node.public_ip[0]:
-                    print "matches. State=", get_state(node.state)
+                if i.instance_id == node.uuid:
                     i.state = get_state(node.state)
                     found = True
                     break
             # This instance was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                print "Delete instance", i.name
+                print "Delete instance", i
                 i.delete()
     
     def update(self):
@@ -178,7 +176,6 @@ class Instance(models.Model):
     
     unique_together   = ('provider', 'name', )
     unique_together   = ('provider', 'instance_id')
-    unique_together   = ('provider', 'public_ip')
     
     def __unicode__(self):
         return str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id

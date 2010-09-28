@@ -8,9 +8,35 @@ from libcloud.types import InvalidCredsException
 
 def overview(request):
     provider_list = Provider.objects.all()
-    instance_list = Instance.objects.all()
+    nodes = []
+    #TODO: Optimize for hundreds of nodes
+    for i in Instance.objects.all():
+        actions = i.provider.actions.filter(show=True)
+        actions_list = []
+        if actions.filter(name='reboot'):
+            actions_list.append({
+                'action': 'reboot',
+                'label': 'reboot',
+                'confirmation': False,
+            })
+        
+        if actions.filter(name='destroy'):
+            actions_list.append({
+                'action': 'destroy',
+                'label': 'destroy',
+                'confirmation': 'This action will completely destroy the instance %s with IP %s' % (i.name, i.public_ip),
+            })
+        else:
+            actions_list.append({
+                'action': 'destroy',
+                'label': 'delete',
+                'confirmation': 'This action will remove the instance %s with IP %s' % (i.name, i.public_ip),
+            })
+        
+        nodes.append({ 'node': i, 'actions': actions_list })
+    
     return render_to_response('overview.html', {
-        'instance_list': instance_list,
+        'nodes': nodes,
         'provider_list': provider_list,
     })
 
@@ -99,7 +125,7 @@ def newnode(request):
                     inst = form.save(commit = False)
                     inst.instance_id = data_from_provider['uuid']
                     inst.public_ip   = data_from_provider['public_ip']
-                    inst.state   = get_state(data_from_provider['state'])
+                    inst.state       = get_state(data_from_provider['state'])
                     inst.save()
                     return HttpResponse('<p>success</p>')
 

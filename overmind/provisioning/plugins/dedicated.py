@@ -26,8 +26,10 @@ class Driver(NodeDriver):
         self.connection = Connection(self.creds)
     
     def create_node(self, **kwargs):
+        #TODO: Check ip correctness
         if not kwargs.get('ip'): return None
-        n = Node(id=self.generate_random_num(),
+        # IP serves as uuid
+        n = Node(id=kwargs.get('ip').replace(".",""),
                  name=kwargs.get('name'),
                  state=NodeState.RUNNING,
                  public_ip=[kwargs.get('ip')],
@@ -41,6 +43,3 @@ class Driver(NodeDriver):
     def list_sizes(self): return []
     def list_locations(self): return []
 
-    def generate_random_num(self):
-        import random
-        return random.randint(0,10000)
