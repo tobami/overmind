@@ -12,14 +12,6 @@ class ProviderController():
     extra_param_name = None
     extra_param_value = None
     
-    states = {
-        0: 'Running',
-        1: 'Rebooting',
-        2: 'Terminated',
-        3: 'Pending',
-        4: 'Unknown',
-    }
-    
     def __init__(self, provider):
         self.extra_param_name  = provider.extra_param_name
         self.extra_param_value = provider.extra_param_value
@@ -96,7 +88,8 @@ class ProviderController():
             else:
                 # Create node without any extra steps nor parameters
                 print "Provider: no features. Just call create_node"
-                args = copy.deepcopy(form.cleaned_data) #include all plugin form fields
+                #include all plugin form fields
+                args = copy.deepcopy(form.cleaned_data)
                 for field in ['name', 'image', 'flavor', 'realm']:
                     if field in args:
                         del args[field]#Avoid colissions with default args
@@ -110,14 +103,11 @@ class ProviderController():
             print e
             return None
         
-        if node.state not in self.states:
-            node.state = 4
-        state = self.states[node.state]
         
         return {
             'public_ip': node.public_ip[0],
             'uuid': node.uuid,
-            'state': state,
+            'state': node.state,
             'extra': node.extra,
         }
     
@@ -126,18 +116,14 @@ class ProviderController():
         node = None
         for n in self.conn.list_nodes():
             if n.uuid == instance.instance_id:
-                node = n
-                break
-        return self.conn.reboot_node(node)
+                return self.conn.reboot_node(n)
     
     def destroy_node(self, instance):
         #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
         node = None
         for n in self.conn.list_nodes():
             if n.uuid == instance.instance_id:
-                node = n
-                break
-        return self.conn.destroy_node(node)
+                return self.conn.destroy_node(n)
     
     def get_nodes(self):
         return self.conn.list_nodes()

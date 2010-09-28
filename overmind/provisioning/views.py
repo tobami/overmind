@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-from overmind.provisioning.models import Provider, Instance
+from overmind.provisioning.models import Provider, Instance, get_state
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
@@ -99,7 +99,7 @@ def newnode(request):
                     inst = form.save(commit = False)
                     inst.instance_id = data_from_provider['uuid']
                     inst.public_ip   = data_from_provider['public_ip']
-                    inst.state   = data_from_provider['state']
+                    inst.state   = get_state(data_from_provider['state'])
                     inst.save()
                     return HttpResponse('<p>success</p>')
 

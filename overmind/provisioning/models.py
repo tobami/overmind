@@ -6,6 +6,19 @@ provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
 PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
 
+STATES = {
+    0: 'Running',
+    1: 'Rebooting',
+    2: 'Terminated',
+    3: 'Pending',
+    4: 'Unknown',
+}
+
+def get_state(state):
+    if state not in STATES:
+        state = 4
+    return STATES[state]
+
 class Action(models.Model):
     name = models.CharField(unique=True, max_length=20)
     show = models.BooleanField()
@@ -69,29 +82,38 @@ class Provider(models.Model):
         if not self.supports('list'): return
         p = ProviderController(self)
         nodes = p.get_nodes()
+        
         # Import nodes not present in the DB
         for node in nodes:
             try:
                 i = Instance.objects.get(provider=self, public_ip=node.public_ip[0])
                 pass# Don't import already existing instance
             except Instance.DoesNotExist:
+                print "Add instance:", node.name
                 new_instance = Instance(
                     name        = node.name,
                     instance_id = node.uuid,
                     provider    = self,
                     public_ip   = node.public_ip[0],
+                    state       = get_state(node.state)
                 )
                 new_instance.save()
+        
         # Update state and delete nodes in the DB not listed by the provider
-        for i in Instance.objects.all():
+        for i in Instance.objects.filter(provider=self):
+            found = False
             for node in nodes:
+                print i.provider.name, i.public_ip, node.public_ip[0]
                 if i.public_ip == node.public_ip[0]:
-                    i.state = node.state
-                    return
+                    print "matches. State=", get_state(node.state)
+                    i.state = get_state(node.state)
+                    found = True
+                    break
             # This instance was probably removed from the provider by another tool
             # TODO: Needs user notification
-            i.delete()
-
+            if not found:
+                print "Delete instance", i.name
+                i.delete()
     
     def update(self):
         self.save()
@@ -170,8 +192,15 @@ class Instance(models.Model):
         '''Returns True if the destroy was successful, otherwise False'''
         if self.provider.supports('destroy'):
             controller = ProviderController(self.provider)
-            if controller.destroy_node(self):
+            ret = controller.destroy_node(self)
+            if ret:
                 self.delete()
             else:
+                print "Not calling Instance.delete()"
+                print "controler.destroy_node() did not return True: ",
+                print ret
                 return False
+        else:
+            self.delete()
+        
         return True
