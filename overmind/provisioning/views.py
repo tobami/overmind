@@ -1,6 +1,6 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-from overmind.provisioning.models import Provider, Instance, get_state
+from overmind.provisioning.models import Action, Provider, Instance, get_state
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
@@ -105,8 +105,9 @@ def deleteprovider(request, provider_id):
     return HttpResponseRedirect('/overview/')
 
 def node(request):
+    '''Displays a provider selection list to call the appropiate node creation form'''
     return render_to_response('node.html', {
-        'provider_list': Provider.objects.all(),
+        'provider_list': Action.objects.get(name='create').provider_set.all(),
     })
 
 def newnode(request):
