@@ -143,6 +143,14 @@ class Provider(models.Model):
         self.create_connection()
         return self.conn.spawn_new_instance(data)
     
+    def reboot_node(self, node):
+        self.create_connection()
+        return self.conn.reboot_node(node)
+    
+    def destroy_node(self, node):
+        self.create_connection()
+        return self.conn.destroy_node(node)
+    
     def __unicode__(self):
         return self.name
 
@@ -190,21 +198,18 @@ class Instance(models.Model):
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
-        controller = ProviderController(self.provider)
-        return controller.reboot_node(self)
+        return self.provider.reboot_node(self)
     
     def destroy(self):
         '''Returns True if the destroy was successful, otherwise False'''
         if self.provider.supports('destroy'):
-            controller = ProviderController(self.provider)
-            ret = controller.destroy_node(self)
+            ret = self.provider.destroy_node(self)
             if ret:
-                self.delete()
-                logging.info('destroyed %s' % self)
+                logging.info('Destroyed %s' % self)
             else:
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Instance.delete()" % ret)
                 return False
-        else:
-            self.delete()
+        self.delete()
+        logging.info('Removed %s from the DB' % self)
         
         return True

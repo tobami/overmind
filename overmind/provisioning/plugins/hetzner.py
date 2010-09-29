@@ -7,7 +7,8 @@ display_name = "Hetzner"
 access_key   = 'User'
 secret_key   = 'Password'
 form_fields  = None
-supported_actions = ['list']#seems that reboot (reset) doesn't work
+# It seems that reboot (reset in the Hetzner API) doesn't work, so don't add
+supported_actions = ['list']
 
 
 class Connection():
@@ -52,6 +53,7 @@ class Driver(NodeDriver):
     
     NODE_STATE_MAP = {
         'ready': NodeState.RUNNING,
+        'process': NodeState.PENDING,
     }
     
     def __init__(self, user, password):
