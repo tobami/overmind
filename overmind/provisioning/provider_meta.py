@@ -7,7 +7,6 @@ LIBCLOUD_PROVIDERS = {
         'display_name': 'Dummy Provider',
         'access_key': 'Dummy Access Key',
         'secret_key': None,
-        'extra_param': ['ex_keyname', settings.PUBLIC_KEY_FILE.split(".")[0]],
     },
     'EC2_US_WEST': {
         'display_name': 'EC2 US West',

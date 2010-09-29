@@ -54,12 +54,11 @@ class Provider(models.Model):
             self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
             self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
         
-        # Check and save new provider
+        # Check connection and save new provider
         try:
             self.create_connection()
-            # Check that it is a valid account
-            #controller.get_nodes()#TODO: try something different
-            # Save
+            #TODO: try something less hardcore than controller.get_nodes()
+            # If no connection error occurred, save correct provider
             super(Provider, self).save(*args, **kwargs)
             logging.debug('provider "%s" saved' % self.name)
         except Exception, e:
