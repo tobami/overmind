@@ -40,6 +40,7 @@ class Provider(models.Model):
         "Extra parameter value", max_length=30, blank=True)
     
     actions = models.ManyToManyField(Action)
+    conn    = None
     
     def save(self, *args, **kwargs):
         # Define proper key field names
@@ -55,14 +56,15 @@ class Provider(models.Model):
         
         # Check and save new provider
         try:
-            controller = ProviderController(self)
+            self.create_connection()
             # Check that it is a valid account
             #controller.get_nodes()#TODO: try something different
             # Save
             super(Provider, self).save(*args, **kwargs)
+            logging.debug('provider "%s" saved' % self.name)
         except Exception, e:
             logging.error(
-                'while saving provider %s.\n%s was raised: %s' % (self.name, type(e), e)
+                'while saving provider "%s".\n%s was raised: %s' % (self.name, type(e), e)
             )
             raise e
         
@@ -81,10 +83,13 @@ class Provider(models.Model):
         except Action.DoesNotExist:
             return False
     
+    def create_connection(self):
+        if self.conn is None: self.conn = ProviderController(self)
+    
     def import_nodes(self):
         if not self.supports('list'): return
-        p = ProviderController(self)
-        nodes = p.get_nodes()
+        self.create_connection()
+        nodes = self.conn.get_nodes()
         
         # Import nodes not present in the DB
         for node in nodes:
@@ -92,7 +97,7 @@ class Provider(models.Model):
                 i = Instance.objects.get(provider=self, instance_id=node.uuid)
                 pass# Don't import already existing instance
             except Instance.DoesNotExist:
-                logging.debug("import_nodes(): adding node %s ..." % node)
+                logging.debug("import_nodes(): adding %s ..." % node)
                 new_instance = Instance(
                     name        = node.name,
                     instance_id = node.uuid,
@@ -101,7 +106,7 @@ class Provider(models.Model):
                     state       = get_state(node.state)
                 )
                 new_instance.save()
-                logging.info("import_nodes(): succesfully added node %s" % node)
+                logging.info("import_nodes(): succesfully added %s" % node)
         
         # Update state and delete nodes in the DB not listed by the provider
         for i in Instance.objects.filter(provider=self):
@@ -118,26 +123,25 @@ class Provider(models.Model):
                 logging.info("import_nodes(): Deleted node %s" % i)
     
     def update(self):
+        logging.debug('Updating provider "%s"...' % self.name)
         self.save()
         self.import_nodes()
     
     def get_flavors(self):
-        controller = ProviderController(self)
-        return controller.get_flavors()
+        self.create_connection()
+        return self.conn.get_flavors()
     
     def get_images(self):
-        controller = ProviderController(self)
-        return controller.get_images()
+        self.create_connection()
+        return self.conn.get_images()
     
     def get_realms(self):
-        controller = ProviderController(self)
-        return controller.get_realms()
+        self.create_connection()
+        return self.conn.get_realms()
     
     def spawn_new_instance(self, data):
-        # first save() so extra_param gets updated
-        self.save()
-        controller = ProviderController(self)
-        return controller.spawn_new_instance(data)
+        self.create_connection()
+        return self.conn.spawn_new_instance(data)
     
     def __unicode__(self):
         return self.name

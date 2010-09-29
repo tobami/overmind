@@ -21,11 +21,11 @@ class ProviderController():
             driver_type = types.Provider.__dict__[self.provider_type]
             # Get driver from libcloud
             Driver = get_driver(driver_type)
-            logging.debug("libcloud provider driver found for %s" % self.provider_type)
+            logging.debug('selected "%s" libcloud driver' % self.provider_type)
         except KeyError:
             # Try to load provider from plugins
             Driver = plugins.get_driver(self.provider_type)
-            logging.debug("plugin provider driver found for %s" % self.provider_type)
+            logging.debug('selected "%s" plugin driver' % self.provider_type)
         except Exception, e:
             logging.critical('ProviderController can\'t find a driver for %s' % self.provider_type)
             raise Exception, "Unknown provider %s" % self.provider_type
@@ -103,7 +103,6 @@ class ProviderController():
         except Exception, e:
             logging.error('while creating node. %s: %s' % (type(e), e))
             return None
-        
         
         return {
             'public_ip': node.public_ip[0],

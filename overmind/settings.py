@@ -93,6 +93,6 @@ else:
     logging.basicConfig(
         level = logging.INFO,
         format = '%(asctime)s %(levelname)s: %(message)s',
-        filename = './log.log',
+        filename = BASEDIR + '/log.log',
         filemode = 'w',
     )

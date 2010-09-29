@@ -129,13 +129,13 @@ def newnode(request):
                 if data_from_provider is None:
                     error = 'Could not create Node'
                 else:
-                    inst = form.save(commit = False)
-                    inst.instance_id = data_from_provider['uuid']
-                    inst.public_ip   = data_from_provider['public_ip']
-                    inst.state       = get_state(data_from_provider['state'])
-                    inst.save()
+                    node = form.save(commit = False)
+                    node.instance_id = data_from_provider['uuid']
+                    node.public_ip   = data_from_provider['public_ip']
+                    node.state       = get_state(data_from_provider['state'])
+                    node.save()
+                    logging.info('New node created %s' % node)
                     return HttpResponse('<p>success</p>')
-
     else:
         form = InstanceForm(request.GET.get("provider"))
     
