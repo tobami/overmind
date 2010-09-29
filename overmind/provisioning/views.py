@@ -4,7 +4,7 @@ from overmind.provisioning.models import Action, Provider, Instance, get_state
 from overmind.provisioning.forms import ProviderForm, InstanceForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
-
+import logging
 
 def overview(request):
     provider_list = Provider.objects.all()
@@ -79,7 +79,9 @@ def newprovider(request):
             try:
                 newprovider.import_nodes()
             except Exception, e:
-                print type(e), e
+                logging.error(
+                    'while importing nodes from provider %s.\n%s was raised: %s' % (newprovider.name, type(e), e)
+                )
             
             return HttpResponse('<p>success</p>')
     else:

@@ -1,6 +1,7 @@
 from django.db import models
 from overmind.provisioning.controllers import ProviderController
 from provider_meta import PROVIDERS
+import logging
 
 provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
@@ -59,17 +60,19 @@ class Provider(models.Model):
             #controller.get_nodes()#TODO: try something different
             # Save
             super(Provider, self).save(*args, **kwargs)
-            
-            # Add supported actions
-            for action_name in PROVIDERS[self.provider_type]['supported_actions']:
-                try:
-                    action = Action.objects.get(name=action_name)
-                except Action.DoesNotExist:
-                    raise Exception, 'Unsupported action "%s" specified' % action_name
-                self.actions.add(action)
         except Exception, e:
-            print type(e), e
+            logging.error(
+                'while saving provider %s.\n%s was raised: %s' % (self.name, type(e), e)
+            )
             raise e
+        
+        # Add supported actions
+        for action_name in PROVIDERS[self.provider_type]['supported_actions']:
+            try:
+                action = Action.objects.get(name=action_name)
+            except Action.DoesNotExist:
+                raise Exception, 'Unsupported action "%s" specified' % action_name
+            self.actions.add(action)
     
     def supports(self, action):
         try:
@@ -89,7 +92,7 @@ class Provider(models.Model):
                 i = Instance.objects.get(provider=self, instance_id=node.uuid)
                 pass# Don't import already existing instance
             except Instance.DoesNotExist:
-                print "Add instance:", node
+                logging.debug("import_nodes(): adding node %s ..." % node)
                 new_instance = Instance(
                     name        = node.name,
                     instance_id = node.uuid,
@@ -98,6 +101,7 @@ class Provider(models.Model):
                     state       = get_state(node.state)
                 )
                 new_instance.save()
+                logging.info("import_nodes(): succesfully added node %s" % node)
         
         # Update state and delete nodes in the DB not listed by the provider
         for i in Instance.objects.filter(provider=self):
@@ -110,8 +114,8 @@ class Provider(models.Model):
             # This instance was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                print "Delete instance", i
                 i.delete()
+                logging.info("import_nodes(): Deleted node %s" % i)
     
     def update(self):
         self.save()
@@ -178,7 +182,7 @@ class Instance(models.Model):
     unique_together   = ('provider', 'instance_id')
     
     def __unicode__(self):
-        return str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id
+        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id + ">"
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
@@ -192,10 +196,9 @@ class Instance(models.Model):
             ret = controller.destroy_node(self)
             if ret:
                 self.delete()
+                logging.info('destroyed %s' % self)
             else:
-                print "Not calling Instance.delete()"
-                print "controler.destroy_node() did not return True: ",
-                print ret
+                logging.error("controler.destroy_node() did not return True: %s.\nnot calling Instance.delete()" % ret)
                 return False
         else:
             self.delete()

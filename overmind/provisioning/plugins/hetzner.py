@@ -80,6 +80,7 @@ class Driver(NodeDriver):
         return n
     
     def list_nodes(self):
+        #TODO: 404 error "No server found" needs to be handled
         response = self.connection.request('server')
         nodes = []
         for node in self._parse_nodes(response):

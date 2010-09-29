@@ -4,7 +4,7 @@ from libcloud.providers import get_driver
 from libcloud.deployment import SSHKeyDeployment
 from overmind.provisioning import plugins
 from django.conf import settings
-import copy
+import copy, logging
 
 
 class ProviderController():
@@ -21,11 +21,13 @@ class ProviderController():
             driver_type = types.Provider.__dict__[self.provider_type]
             # Get driver from libcloud
             Driver = get_driver(driver_type)
+            logging.debug("libcloud provider driver found for %s" % self.provider_type)
         except KeyError:
             # Try to load provider from plugins
-            Driver = plugins.get_driver(provider.provider_type)
+            Driver = plugins.get_driver(self.provider_type)
+            logging.debug("plugin provider driver found for %s" % self.provider_type)
         except Exception, e:
-            print e
+            logging.critical('ProviderController can\'t find a driver for %s' % self.provider_type)
             raise Exception, "Unknown provider %s" % self.provider_type
         
         # Providers with only one access key
@@ -63,14 +65,14 @@ class ProviderController():
         try:
             if "ssh_key" in features:
                 # Pass on public key and we are done
-                print "Provider: ssh_key. Pass on key"
+                logging.debug("Provider feature: ssh_key. Pass on key")
                 node = self.conn.create_node(
                     name=name, image=image, size=flavor, location=realm,
                     auth=NodeAuthSSHKey(settings.PUBLIC_KEY)
                 )
             elif 'generates_password' in features:
                 # Use deploy_node to deploy public key
-                print "Provider: generates_password. Use deploy_node"
+                logging.debug("Provider feature: generates_password. Use deploy_node")
                 pubkey = SSHKeyDeployment(settings.PUBLIC_KEY) 
                 node = self.conn.deploy_node(
                     name=name, image=image, size=flavor, location=realm,
@@ -80,14 +82,14 @@ class ProviderController():
                 # Pass on password and use deploy_node to deploy public key
                 pubkey = SSHKeyDeployment(settings.PUBLIC_KEY)
                 rpassword = generate_random_password(15)
-                print "Provider: password. Pass on password=%s" % rpassword
+                logging.debug("Provider feature: password. Pass on password=%s to deploy_node" % rpassword)
                 node = self.conn.deploy_node(
                     name=name, image=image, size=flavor, location=realm,
                     auth=NodeAuthPassword(rpassword), deploy=pubkey
                 )
             else:
                 # Create node without any extra steps nor parameters
-                print "Provider: no features. Just call create_node"
+                logging.debug("Provider feature: none. call create_node")
                 #include all plugin form fields
                 args = copy.deepcopy(form.cleaned_data)
                 for field in ['name', 'image', 'flavor', 'realm']:
@@ -99,8 +101,7 @@ class ProviderController():
                     name=name, image=image, size=flavor, location=realm, **args
                 )
         except Exception, e:
-            print "Exception of type %s" % type(e)
-            print e
+            logging.error('while creating node. %s: %s' % (type(e), e))
             return None
         
         

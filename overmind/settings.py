@@ -1,5 +1,5 @@
 # Django settings for Overmind project.
-import os
+import os, logging
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -82,3 +82,17 @@ INSTALLED_APPS = (
 
 PUBLIC_KEY_FILE = "id_rsa.pub"
 PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()
+
+# Configure logging
+if DEBUG:
+    logging.basicConfig(
+        level = logging.DEBUG,
+        format = '%(asctime)s %(levelname)s: %(message)s',
+    )
+else:
+    logging.basicConfig(
+        level = logging.INFO,
+        format = '%(asctime)s %(levelname)s: %(message)s',
+        filename = './log.log',
+        filemode = 'w',
+    )
