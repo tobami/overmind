@@ -7,7 +7,7 @@ def get_driver(provider):
     _mod = __import__(provider, globals(), locals())
     return getattr(_mod, "Driver")
 
-def get_plugins():
+def load_plugins():
     import os
     plugin_list = {}
     for f in os.listdir(os.path.dirname(__file__)):

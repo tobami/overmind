@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
-from overmind.provisioning.models import Action, Provider, Instance, get_state
-from overmind.provisioning.forms import ProviderForm, InstanceForm
+from overmind.provisioning.models import Action, Provider, Node, get_state
+from overmind.provisioning.forms import ProviderForm, NodeForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
 import logging
@@ -10,8 +10,8 @@ def overview(request):
     provider_list = Provider.objects.all()
     nodes = []
     #TODO: Optimize for hundreds of nodes
-    for i in Instance.objects.all():
-        actions = i.provider.actions.filter(show=True)
+    for n in Node.objects.all():
+        actions = n.provider.actions.filter(show=True)
         actions_list = []
         
         if actions.filter(name='reboot'):
@@ -25,16 +25,16 @@ def overview(request):
             actions_list.append({
                 'action': 'destroy',
                 'label': 'destroy',
-                'confirmation': 'This action will completely destroy the instance %s with IP %s' % (i.name, i.public_ip),
+                'confirmation': 'This action will completely destroy the node %s with IP %s' % (n.name, n.public_ip),
             })
         else:
             actions_list.append({
                 'action': 'destroy',
                 'label': 'delete',
-                'confirmation': 'This action will remove the instance %s with IP %s' % (i.name, i.public_ip),
+                'confirmation': 'This action will remove the node %s with IP %s' % (n.name, n.public_ip),
             })
         
-        nodes.append({ 'node': i, 'actions': actions_list })
+        nodes.append({ 'node': n, 'actions': actions_list })
     
     return render_to_response('overview.html', {
         'nodes': nodes,
@@ -116,39 +116,39 @@ def newnode(request):
     error = None
     if request.method == 'POST':
         provider_id = request.POST.get("provider")
-        form = InstanceForm(provider_id, request.POST)
+        form = NodeForm(provider_id, request.POST)
         if form.is_valid():
             provider = Provider.objects.get(id=provider_id)
             try:
-                i = Instance.objects.get(
+                n = Node.objects.get(
                     provider=provider, name=form.cleaned_data['name']
                 )
                 error = 'A node with that name already exists'
-            except Instance.DoesNotExist:
-                data_from_provider = provider.spawn_new_instance(form)
+            except Node.DoesNotExist:
+                data_from_provider = provider.create_node(form)
                 if data_from_provider is None:
                     error = 'Could not create Node'
                 else:
                     node = form.save(commit = False)
-                    node.instance_id = data_from_provider['uuid']
+                    node.uuid = data_from_provider['uuid']
                     node.public_ip   = data_from_provider['public_ip']
                     node.state       = get_state(data_from_provider['state'])
                     node.save()
                     logging.info('New node created %s' % node)
                     return HttpResponse('<p>success</p>')
     else:
-        form = InstanceForm(request.GET.get("provider"))
+        form = NodeForm(request.GET.get("provider"))
     
     return render_to_response('node_form.html', { 'form': form, 'error': error })
 
 def rebootnode(request, node_id):
-    node = Instance.objects.get(id=node_id)
+    node = Node.objects.get(id=node_id)
     result = node.reboot()
     #TODO: result true or false. Show message accordingly
     return HttpResponseRedirect('/overview/')
 
 def destroynode(request, node_id):
     #TODO: turn into DELETE request? completely RESTify?
-    node = Instance.objects.get(id=node_id)
+    node = Node.objects.get(id=node_id)
     result = node.destroy()
     return HttpResponseRedirect('/overview/')

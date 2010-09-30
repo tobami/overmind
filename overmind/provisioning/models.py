@@ -93,33 +93,33 @@ class Provider(models.Model):
         # Import nodes not present in the DB
         for node in nodes:
             try:
-                i = Instance.objects.get(provider=self, instance_id=node.uuid)
-                pass# Don't import already existing instance
-            except Instance.DoesNotExist:
+                n = Node.objects.get(provider=self, uuid=node.uuid)
+                pass# Don't import already existing node
+            except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
-                new_instance = Instance(
+                new_node = Node(
                     name        = node.name,
-                    instance_id = node.uuid,
+                    uuid        = node.uuid,
                     provider    = self,
                     public_ip   = node.public_ip[0],
                     state       = get_state(node.state)
                 )
-                new_instance.save()
+                new_node.save()
                 logging.info("import_nodes(): succesfully added %s" % node)
         
         # Update state and delete nodes in the DB not listed by the provider
-        for i in Instance.objects.filter(provider=self):
+        for n in Node.objects.filter(provider=self):
             found = False
             for node in nodes:
-                if i.instance_id == node.uuid:
-                    i.state = get_state(node.state)
+                if n.uuid == node.uuid:
+                    n.state = get_state(node.state)
                     found = True
                     break
-            # This instance was probably removed from the provider by another tool
+            # This node was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                i.delete()
-                logging.info("import_nodes(): Deleted node %s" % i)
+                n.delete()
+                logging.info("import_nodes(): Deleted node %s" % n)
     
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
@@ -138,9 +138,9 @@ class Provider(models.Model):
         self.create_connection()
         return self.conn.get_realms()
     
-    def spawn_new_instance(self, data):
+    def create_node(self, data):
         self.create_connection()
-        return self.conn.spawn_new_instance(data)
+        return self.conn.create_node(data)
     
     def reboot_node(self, node):
         self.create_connection()
@@ -154,7 +154,7 @@ class Provider(models.Model):
         return self.name
 
 
-class Instance(models.Model):
+class Node(models.Model):
     STATE_CHOICES = (
         (u'Begin', u'Begin'),
         (u'Pending', u'Pending'),
@@ -173,9 +173,9 @@ class Instance(models.Model):
         (u'TE', u'Test'),
         (u'DE', u'Decommisioned'),
     )
-    # Standard instance fields
+    # Standard node fields
     name              = models.CharField(max_length=25)
-    instance_id       = models.CharField(max_length=50)
+    uuid              = models.CharField(max_length=50)
     provider          = models.ForeignKey(Provider)
     state             = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
@@ -190,10 +190,10 @@ class Instance(models.Model):
     )
     
     unique_together   = ('provider', 'name', )
-    unique_together   = ('provider', 'instance_id')
+    unique_together   = ('provider', 'uuid')
     
     def __unicode__(self):
-        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.instance_id + ">"
+        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.uuid + ">"
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
@@ -206,7 +206,7 @@ class Instance(models.Model):
             if ret:
                 logging.info('Destroyed %s' % self)
             else:
-                logging.error("controler.destroy_node() did not return True: %s.\nnot calling Instance.delete()" % ret)
+                logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
         self.delete()
         logging.info('Removed %s from the DB' % self)

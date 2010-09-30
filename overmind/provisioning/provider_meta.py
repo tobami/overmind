@@ -43,7 +43,7 @@ def add_libcloud_providers():
 add_libcloud_providers()
 
 def add_plugins():
-    plugin_dict = plugins.get_plugins()
+    plugin_dict = plugins.load_plugins()
     for p in plugin_dict.keys():
         PROVIDERS[p] = plugin_dict[p]
 

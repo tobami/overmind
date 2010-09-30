@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from overmind.provisioning.models import Provider, Instance
+from overmind.provisioning.models import Provider, Node
 from overmind.provisioning.provider_meta import PROVIDERS
 
 class ProviderForm(ModelForm):
@@ -24,14 +24,14 @@ class ProviderForm(ModelForm):
         fields = ('name', 'provider_type', 'access_key', 'secret_key')
 
 
-class InstanceForm(ModelForm):
+class NodeForm(ModelForm):
     provider = forms.ModelChoiceField(
         queryset = Provider.objects.all(),
         widget   = forms.HiddenInput,
     )
     
     def __init__(self, provider, *args, **kwargs):
-        super(InstanceForm, self).__init__(*args, **kwargs)
+        super(NodeForm, self).__init__(*args, **kwargs)
         p = Provider.objects.get(id=provider)
         self.fields['provider'].initial = p.id
         
@@ -54,5 +54,5 @@ class InstanceForm(ModelForm):
                 self.fields['image'].choices += [(img.id, img.name)]
     
     class Meta:
-        model  = Instance
+        model  = Node
         fields = ('provider', 'name')

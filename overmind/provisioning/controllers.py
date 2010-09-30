@@ -37,7 +37,7 @@ class ProviderController():
         else:
             self.conn = Driver(provider.access_key, provider.secret_key)
         
-    def spawn_new_instance(self, form):
+    def create_node(self, form):
         name   = form.cleaned_data['name']
         #TODO: get image, size, location id from the form image name
         image  = None
@@ -111,19 +111,19 @@ class ProviderController():
             'extra': node.extra,
         }
     
-    def reboot_node(self, instance):
+    def reboot_node(self, node):
         #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
-        node = None
         for n in self.conn.list_nodes():
-            if n.uuid == instance.instance_id:
+            if n.uuid == node.uuid:
                 return self.conn.reboot_node(n)
+        return False
     
-    def destroy_node(self, instance):
+    def destroy_node(self, node):
         #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
-        node = None
         for n in self.conn.list_nodes():
-            if n.uuid == instance.instance_id:
+            if n.uuid == node.uuid:
                 return self.conn.destroy_node(n)
+        return False
     
     def get_nodes(self):
         return self.conn.list_nodes()
