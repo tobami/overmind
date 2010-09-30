@@ -11,6 +11,8 @@ if settings.DEBUG:
     )
 
 urlpatterns += patterns('',
+    (r'^api/', include('overmind.api.urls')),
+    
     (r'^overview/$', 'overmind.provisioning.views.overview'),
     (r'^provider/$', 'overmind.provisioning.views.provider'),
     (r'^node/$', 'overmind.provisioning.views.node'),

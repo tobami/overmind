@@ -10,7 +10,7 @@ def overview(request):
     provider_list = Provider.objects.all()
     nodes = []
     #TODO: Optimize for hundreds of nodes
-    for n in Node.objects.all():
+    for n in Node.objects.exclude(production_state='DE'):
         actions = n.provider.actions.filter(show=True)
         actions_list = []
         
@@ -148,7 +148,6 @@ def rebootnode(request, node_id):
     return HttpResponseRedirect('/overview/')
 
 def destroynode(request, node_id):
-    #TODO: turn into DELETE request? completely RESTify?
     node = Node.objects.get(id=node_id)
     result = node.destroy()
     return HttpResponseRedirect('/overview/')

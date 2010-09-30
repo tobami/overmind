@@ -16,8 +16,7 @@ STATES = {
 }
 
 def get_state(state):
-    if state not in STATES:
-        state = 4
+    if state not in STATES: state = 4
     return STATES[state]
 
 class Action(models.Model):
@@ -47,9 +46,11 @@ class Provider(models.Model):
         if PROVIDERS[self.provider_type]['access_key'] is not None:
             self._meta.get_field('access_key').verbose_name = \
                 PROVIDERS[self.provider_type]['access_key']
+            self._meta.get_field('access_key').blank = False
         if PROVIDERS[self.provider_type]['secret_key'] is not None:
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
+            self._meta.get_field('access_key').blank = False
         if 'extra_param' in PROVIDERS[self.provider_type].keys():
             self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
             self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
@@ -208,7 +209,7 @@ class Node(models.Model):
             else:
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
-        self.delete()
-        logging.info('Removed %s from the DB' % self)
+        self.production_state = 'DE'
+        self.save()
         
         return True
