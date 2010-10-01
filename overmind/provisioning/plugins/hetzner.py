@@ -1,6 +1,6 @@
 # Hetzner plugin
 from libcloud.base import ConnectionUserAndKey, NodeDriver, Node
-from libcloud.types import NodeState
+from libcloud.types import NodeState, InvalidCredsException
 import httplib2, simplejson
 
 display_name = "Hetzner"
@@ -30,7 +30,7 @@ class Connection():
         elif response.get('status') == '500' and content == 'Reset failed':
             raise Exception, "Reset failed"
         else:
-            raise Exception, "Unknown error"
+            raise Exception, "Unknown error: " + response.get('status')
     
     def request(self, path, method='GET', params=None):
         if method != 'GET' and method != 'POST': return None

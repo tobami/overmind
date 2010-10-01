@@ -1,8 +1,9 @@
 from piston.handler import BaseHandler
+from piston.utils import rc
+from libcloud.types import InvalidCredsException
 from overmind.provisioning.provider_meta import PROVIDERS
 from overmind.provisioning.models import Provider, Node, get_state
 from overmind.provisioning.forms import ProviderForm, NodeForm
-from piston.utils import rc
 import copy, logging
 
 
@@ -35,34 +36,48 @@ class ProviderHandler(BaseHandler):
             resp = rc.BAD_REQUEST
             resp.write(': wrong provider_type')
             return resp
-
+        
         # All fields are present
         for field in self.fields:
             if field == 'id': continue
             if field not in attrs:
-                return rc.BAD_REQUEST
+                resp = rc.BAD_REQUEST
+                resp.write(': field %s missing' % field)
+                return resp
+        
         # Validate keys
         for field in ['access_key', 'secret_key']:
             if attrs[field] == "":
                 if PROVIDERS[attrs['provider_type']][field] is not None:
-                    return rc.BAD_REQUEST
+                    resp = rc.BAD_REQUEST
+                    resp.write(': %s is a required field' % field)
+                    return resp
             elif PROVIDERS[attrs['provider_type']][field] is None:
-                return rc.BAD_REQUEST
+                resp = rc.BAD_REQUEST
+                resp.write(': %s must be empty' % field)
+                return resp
         
-        # Look for duplicates
         try:
+            # Look for duplicates
             self.model.objects.get(name=attrs['name'])
             return rc.DUPLICATE_ENTRY
         except self.model.DoesNotExist:
+            # Create new provider
             provider = Provider(
                 name=attrs['name'], 
                 provider_type=attrs['provider_type'],
                 access_key=attrs['access_key'],
                 secret_key=attrs['secret_key']
             )
-            provider.save()
-            provider.import_nodes()
-            return provider
+            try:
+                provider.save()
+                provider.import_nodes()
+                return provider
+            except InvalidCredsException:
+                provider.delete()
+                resp = rc.BAD_REQUEST
+                resp.write(': Invalid Credentials')
+                return resp
     
     def read(self, request, *args, **kwargs):
         id = kwargs.get('id')
@@ -151,7 +166,7 @@ class NodeHandler(BaseHandler):
             resp.write(': Provider with id="%s" does not exist' % provider_id)
             return resp
         
-        # Modify REST provider_id to provider (expected form field)
+        # Modify REST "provider_id" to "provider" (expected form field)
         data = copy.deepcopy(request.POST)
         data['provider'] = data['provider_id']
         del data['provider_id']
@@ -181,7 +196,10 @@ class NodeHandler(BaseHandler):
         else:
             resp = rc.BAD_REQUEST
             for k, v in form.errors.items():
-                resp.write("\n" + k + ": " + v[0].__unicode__())
+                error = v[0]
+                if type(error) != unicode:
+                    error = error.__unicode__()
+                resp.write("\n" + k + ": " + error)
             return resp
     
     def read(self, request, *args, **kwargs):
