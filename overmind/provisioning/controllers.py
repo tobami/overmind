@@ -36,7 +36,7 @@ class ProviderController():
         # Providers with 2 keys
         else:
             self.conn = Driver(provider.access_key, provider.secret_key)
-
+    
     def create_node(self, form):
         name   = form.cleaned_data['name']
         #TODO: get image, size, location id from the form image name

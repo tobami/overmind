@@ -30,9 +30,9 @@ class NodeForm(ModelForm):
         widget   = forms.HiddenInput,
     )
     
-    def __init__(self, provider, *args, **kwargs):
+    def __init__(self, provider_id, *args, **kwargs):
         super(NodeForm, self).__init__(*args, **kwargs)
-        p = Provider.objects.get(id=provider)
+        p = Provider.objects.get(id=provider_id)
         self.fields['provider'].initial = p.id
         
         if PROVIDERS[p.provider_type].get('plugin'):

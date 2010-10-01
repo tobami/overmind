@@ -130,9 +130,9 @@ def newnode(request):
                     error = 'Could not create Node'
                 else:
                     node = form.save(commit = False)
-                    node.uuid = data_from_provider['uuid']
-                    node.public_ip   = data_from_provider['public_ip']
-                    node.state       = get_state(data_from_provider['state'])
+                    node.uuid      = data_from_provider['uuid']
+                    node.public_ip = data_from_provider['public_ip']
+                    node.state     = get_state(data_from_provider['state'])
                     node.save()
                     logging.info('New node created %s' % node)
                     return HttpResponse('<p>success</p>')
