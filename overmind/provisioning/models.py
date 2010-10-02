@@ -59,6 +59,7 @@ class Provider(models.Model):
         try:
             self.create_connection()
             #TODO: try something less hardcore than controller.get_nodes()
+            # EC2 does not return an error until list_nodes is created
             # If no connection error occurred, save correct provider
             super(Provider, self).save(*args, **kwargs)
             logging.debug('provider "%s" saved' % self.name)
@@ -95,7 +96,7 @@ class Provider(models.Model):
         for node in nodes:
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
-                pass# Don't import already existing node
+                # Don't import already existing node
             except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
                 new_node = Node(

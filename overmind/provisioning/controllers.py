@@ -92,6 +92,7 @@ class ProviderController():
                 logging.debug("Provider feature: none. call create_node")
                 #include all plugin form fields
                 args = copy.deepcopy(form.cleaned_data)
+                #TODO: check what other args need deleting (provider?)
                 for field in ['name', 'image', 'flavor', 'realm']:
                     if field in args:
                         del args[field]#Avoid colissions with default args

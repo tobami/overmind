@@ -59,7 +59,11 @@ def newprovider(request):
         if form.is_valid():
             try:
                 newprovider = form.save()
+                #TODO: defer importing to a work queue
+                newprovider.import_nodes()
             except TypeError:
+                #EC2 won't return an error on wrong credentials until import
+                newprovider.delete()
                 return render_to_response('provider_form.html', {
                     'form': form,
                     'error': 'Invalid account credentials',
@@ -74,15 +78,7 @@ def newprovider(request):
                 return render_to_response('provider_form.html', {
                     'form': form,
                     'error': e,
-                })
-            #TODO: defer importing to a work queue
-            try:
-                newprovider.import_nodes()
-            except Exception, e:
-                logging.error(
-                    'while importing nodes from provider %s.\n%s was raised: %s' % (newprovider.name, type(e), e)
-                )
-            
+                })            
             return HttpResponse('<p>success</p>')
     else:
         if "provider_type" in request.GET:
