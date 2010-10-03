@@ -74,6 +74,10 @@ class ProviderHandler(BaseHandler):
                 provider.import_nodes()
                 return provider
             except InvalidCredsException:
+                resp = rc.BAD_REQUEST
+                resp.write(': Invalid Credentials')
+                return resp
+            except TypeError:#EC2 bug
                 provider.delete()
                 resp = rc.BAD_REQUEST
                 resp.write(': Invalid Credentials')
