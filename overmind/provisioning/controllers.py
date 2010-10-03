@@ -32,10 +32,10 @@ class ProviderController():
         
         # Providers with only one access key
         if provider.secret_key == "":
-            self.conn = Driver(provider.access_key)
+            self.conn = Driver(str(provider.access_key))
         # Providers with 2 keys
         else:
-            self.conn = Driver(provider.access_key, provider.secret_key)
+            self.conn = Driver(str(provider.access_key), str(provider.secret_key))
     
     def create_node(self, form):
         name   = form.cleaned_data['name']

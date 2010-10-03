@@ -71,17 +71,13 @@ class ProviderHandler(BaseHandler):
             )
             try:
                 provider.save()
-                provider.import_nodes()
-                return provider
             except InvalidCredsException:
                 resp = rc.BAD_REQUEST
                 resp.write(': Invalid Credentials')
                 return resp
-            except TypeError:#EC2 bug
-                provider.delete()
-                resp = rc.BAD_REQUEST
-                resp.write(': Invalid Credentials')
-                return resp
+            
+            provider.import_nodes()
+            return provider
     
     def read(self, request, *args, **kwargs):
         id = kwargs.get('id')
