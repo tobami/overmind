@@ -122,6 +122,7 @@ class Provider(models.Model):
             if not found:
                 n.delete()
                 logging.info("import_nodes(): Deleted node %s" % n)
+        logging.debug("Finished synching" % node)
     
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)

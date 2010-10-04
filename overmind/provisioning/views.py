@@ -18,14 +18,16 @@ def overview(request):
             actions_list.append({
                 'action': 'reboot',
                 'label': 'reboot',
-                'confirmation': False,
+                'confirmation': 'Are you sure you want to reboot the node "%s"'\
+                % n.name,
             })
         
         if actions.filter(name='destroy'):
             actions_list.append({
                 'action': 'destroy',
                 'label': 'destroy',
-                'confirmation': 'This action will completely destroy the node %s with IP %s' % (n.name, n.public_ip),
+                'confirmation': 'This action will completely destroy the node %s'\
+                % n.name,
             })
         else:
             actions_list.append({
