@@ -193,6 +193,7 @@ class Node(models.Model):
     production_state  = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
     )
+    timestamp         = models.DateTimeField(auto_now_add=True)
     
     unique_together   = ('provider', 'name', )
     unique_together   = ('provider', 'uuid')
