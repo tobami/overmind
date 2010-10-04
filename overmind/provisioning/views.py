@@ -57,21 +57,19 @@ def newprovider(request):
         provider_type = request.POST.get("provider_type")
         form = ProviderForm(provider_type, request.POST)
         if form.is_valid():
+            newprovider = None
             try:
                 newprovider = form.save()
                 #TODO: defer importing to a work queue
                 newprovider.import_nodes()
             except InvalidCredsException:
+                # Delete provider if InvalidCreds is raised (by EC2)
+                # after it has been saved
+                if newprovider: newprovider.delete()
                 return render_to_response('provider_form.html', {
                     'form': form,
-                    'error': 'Invalid account credentials (exception)',
+                    'error': 'Invalid account credentials',
                 })
-            except Exception, e:
-                # Unexpected error
-                return render_to_response('provider_form.html', {
-                    'form': form,
-                    'error': e,
-                })            
             return HttpResponse('<p>success</p>')
     else:
         if "provider_type" in request.GET:
@@ -114,10 +112,8 @@ def newnode(request):
                 )
                 error = 'A node with that name already exists'
             except Node.DoesNotExist:
-                data_from_provider = provider.create_node(form)
-                if data_from_provider is None:
-                    error = 'Could not create Node'
-                else:
+                error, data_from_provider = provider.create_node(form)
+                if not error:
                     node = form.save(commit = False)
                     node.uuid      = data_from_provider['uuid']
                     node.public_ip = data_from_provider['public_ip']

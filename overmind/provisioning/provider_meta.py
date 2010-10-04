@@ -38,7 +38,9 @@ PROVIDERS = {}
 def add_libcloud_providers():
     for p in LIBCLOUD_PROVIDERS.keys():
         PROVIDERS[p] = LIBCLOUD_PROVIDERS[p]
-        PROVIDERS[p]['supported_actions'] = ['create', 'destroy', 'reboot', 'list']
+        PROVIDERS[p]['supported_actions'] = [
+            'create', 'destroy', 'reboot', 'list', 'images', 'flavors', 'realms',
+        ]
         PROVIDERS[p]['form_fields'] = ['image', 'flavor', 'realm']
 
 add_libcloud_providers()

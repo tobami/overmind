@@ -86,10 +86,10 @@ header nav { display: table-cell; }
     
     #maincontent form { width: 32em; }
     #maincontent form p { padding: 0.3em; }
-    #maincontent form p select { float: right; }
-    #maincontent form p input[type="text"], #maincontent form p input[type="password"]  {
-            float: right; width: 20em; padding: 0.1em; 
+    #maincontent form p input[type="text"], #maincontent form p input[type="password"] , #maincontent form p select {
+            float: right; width: 20em; padding: 1px; 
     }
+    #maincontent form p select { width: 20.4em; }
 
 div#sidebar {
     display: table-cell;

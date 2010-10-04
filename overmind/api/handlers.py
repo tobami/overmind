@@ -71,12 +71,13 @@ class ProviderHandler(BaseHandler):
             )
             try:
                 provider.save()
+                provider.import_nodes()
             except InvalidCredsException:
+                if provider.id is not None: provider.delete()
                 resp = rc.BAD_REQUEST
                 resp.write(': Invalid Credentials')
                 return resp
             
-            provider.import_nodes()
             return provider
     
     def read(self, request, *args, **kwargs):
@@ -180,10 +181,11 @@ class NodeHandler(BaseHandler):
                 #error = 'A node with that name already exists'
                 return rc.DUPLICATE_ENTRY
             except Node.DoesNotExist:
-                data_from_provider = provider.create_node(form)
-                if data_from_provider is None:
-                    #error = 'Could not create Node'
-                    return rc.INTERNAL_ERROR
+                error, data_from_provider = provider.create_node(form)
+                if error:
+                    resp = rc.INTERNAL_ERROR
+                    resp.write(': Could not create node: %s' % error)
+                    return resp
                 else:
                     node = form.save(commit = False)
                     node.uuid      = data_from_provider['uuid']
@@ -191,7 +193,6 @@ class NodeHandler(BaseHandler):
                     node.state     = get_state(data_from_provider['state'])
                     node.save()
                     logging.info('New node created %s' % node)
-                    #return HttpResponse('<p>success</p>')
                     return node
         else:
             resp = rc.BAD_REQUEST

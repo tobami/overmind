@@ -3,7 +3,7 @@
     "model": "provisioning.action",
     "pk": 1,
     "fields": {
-      "name": "create",
+      "name": "images",
       "show": false
     }
   },
@@ -11,13 +11,37 @@
     "model": "provisioning.action",
     "pk": 2,
     "fields": {
+      "name": "flavors",
+      "show": false
+    }
+  },
+  {
+    "model": "provisioning.action",
+    "pk": 3,
+    "fields": {
+      "name": "realms",
+      "show": false
+    }
+  },
+  {
+    "model": "provisioning.action",
+    "pk": 4,
+    "fields": {
+      "name": "create",
+      "show": false
+    }
+  },
+  {
+    "model": "provisioning.action",
+    "pk": 5,
+    "fields": {
       "name": "destroy",
       "show": true
     }
   },
   {
     "model": "provisioning.action",
-    "pk": 3,
+    "pk": 6,
     "fields": {
       "name": "reboot",
       "show": true
@@ -25,7 +49,7 @@
   },
   {
     "model": "provisioning.action",
-    "pk": 4,
+    "pk": 7,
     "fields": {
       "name": "list",
       "show": false

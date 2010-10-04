@@ -90,10 +90,10 @@ class ProviderController():
             else:
                 # Create node without any extra steps nor parameters
                 logging.debug("Provider feature: none. call create_node")
-                #include all plugin form fields
+                # Include all plugin form fields in the argument dict
                 args = copy.deepcopy(form.cleaned_data)
-                #TODO: check what other args need deleting (provider?)
-                for field in ['name', 'image', 'flavor', 'realm']:
+                # Remove unneeded fields
+                for field in ['name', 'image', 'flavor', 'realm', 'provider']:
                     if field in args:
                         del args[field]#Avoid colissions with default args
                 args[self.extra_param_name] = self.extra_param_value
@@ -103,9 +103,9 @@ class ProviderController():
                 )
         except Exception, e:
             logging.error('while creating node. %s: %s' % (type(e), e))
-            return None
+            return e, None
         
-        return {
+        return None, {
             'public_ip': node.public_ip[0],
             'uuid': node.uuid,
             'state': node.state,

@@ -58,9 +58,7 @@ class Provider(models.Model):
         # Check connection and save new provider
         try:
             self.create_connection()
-            #TODO: try something less hardcore than controller.get_nodes()
-            # EC2 does not return an error until list_nodes is created
-            # If no connection error occurred, save correct provider
+            # If connection was succesful save provider
             super(Provider, self).save(*args, **kwargs)
             logging.debug('provider "%s" saved' % self.name)
         except Exception, e:
@@ -76,7 +74,7 @@ class Provider(models.Model):
             except Action.DoesNotExist:
                 raise Exception, 'Unsupported action "%s" specified' % action_name
             self.actions.add(action)
-    
+        
     def supports(self, action):
         try:
             self.actions.get(name=action)
@@ -91,7 +89,6 @@ class Provider(models.Model):
         if not self.supports('list'): return
         self.create_connection()
         nodes = self.conn.get_nodes()
-        
         # Import nodes not present in the DB
         for node in nodes:
             try:
@@ -129,14 +126,17 @@ class Provider(models.Model):
         self.import_nodes()
     
     def get_flavors(self):
+        if not self.supports('flavors'): return
         self.create_connection()
         return self.conn.get_flavors()
     
     def get_images(self):
+        if not self.supports('images'): return
         self.create_connection()
         return self.conn.get_images()
     
     def get_realms(self):
+        if not self.supports('realms'): return
         self.create_connection()
         return self.conn.get_realms()
     
