@@ -93,17 +93,20 @@ class Provider(models.Model):
         for node in nodes:
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
-                # Don't import already existing node
+                # Don't import already existing node, update instead
+                n.public_ip = node.public_ip[0]
+                n.state     = get_state(node.state)
+                n.save()
             except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
-                new_node = Node(
-                    name        = node.name,
-                    uuid        = node.uuid,
-                    provider    = self,
-                    public_ip   = node.public_ip[0],
-                    state       = get_state(node.state)
+                n = Node(
+                    name      = node.name,
+                    uuid      = node.uuid,
+                    provider  = self,
+                    public_ip = node.public_ip[0],
+                    state     = get_state(node.state),
                 )
-                new_node.save()
+                n.save()
                 logging.info("import_nodes(): succesfully added %s" % node)
         
         # Update state and delete nodes in the DB not listed by the provider
