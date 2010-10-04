@@ -38,7 +38,7 @@ class ProviderHandler(BaseHandler):
             return resp
         
         # All fields are present
-        for field in self.fields:
+        for field in ['name', 'provider_type']:
             if field == 'id': continue
             if field not in attrs:
                 resp = rc.BAD_REQUEST
@@ -47,15 +47,12 @@ class ProviderHandler(BaseHandler):
         
         # Validate keys
         for field in ['access_key', 'secret_key']:
-            if attrs[field] == "":
+            if PROVIDERS[attrs['provider_type']][field] is None: continue
+            elif field not in attrs or attrs[field] == "":
                 if PROVIDERS[attrs['provider_type']][field] is not None:
                     resp = rc.BAD_REQUEST
                     resp.write(': %s is a required field' % field)
                     return resp
-            elif PROVIDERS[attrs['provider_type']][field] is None:
-                resp = rc.BAD_REQUEST
-                resp.write(': %s must be empty' % field)
-                return resp
         
         try:
             # Look for duplicates
@@ -66,8 +63,8 @@ class ProviderHandler(BaseHandler):
             provider = Provider(
                 name=attrs['name'], 
                 provider_type=attrs['provider_type'],
-                access_key=attrs['access_key'],
-                secret_key=attrs['secret_key']
+                access_key=attrs.get('access_key', ''),
+                secret_key=attrs.get('secret_key', ''),
             )
             try:
                 provider.save()
