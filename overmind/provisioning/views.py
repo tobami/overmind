@@ -11,6 +11,15 @@ def overview(request):
     nodes = []
     #TODO: Optimize for hundreds of nodes
     for n in Node.objects.exclude(production_state='DE'):
+        datatable = "<table>"
+        fields = [
+            ['uuid', n.uuid],
+            ['timestamp', n.timestamp],
+        ]
+        for field in fields:
+            datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1]) + "</td></tr></td>"
+        datatable += "</table>"
+        
         actions = n.provider.actions.filter(show=True)
         actions_list = []
         
@@ -36,7 +45,7 @@ def overview(request):
                 'confirmation': 'This action will remove the node %s with IP %s' % (n.name, n.public_ip),
             })
         
-        nodes.append({ 'node': n, 'actions': actions_list })
+        nodes.append({ 'node': n, 'data': datatable, 'actions': actions_list })
     
     return render_to_response('overview.html', {
         'nodes': nodes,

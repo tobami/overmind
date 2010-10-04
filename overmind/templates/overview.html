@@ -1,10 +1,34 @@
 {% extends "base.html" %}
 {% block title %}: Overview{% endblock %}
+{% block script %}
+    <script>
+        function format_tooltip() {
+            return $(this).attr('data-tooltip');
+        }
+        
+        function attach_tooltip(id) {
+            $("#"+id + " span.name").tooltip({
+                track: true,
+                delay: 0,
+                showURL: false,
+                bodyHandler: format_tooltip,
+                opacity: 0.95,
+            });
+        }
+        
+        $(function() {
+            {% for row in nodes %}
+            attach_tooltip("n_{{ row.node.provider.id }}_{{ row.node.id }}");
+            {% endfor %}
+        });
+    </script>
+{% endblock %}
 {% block content %}
     <h2>Nodes<span class="actions"><a href="/provider/update/">update</a></span></h2>
     <br />
     <ul class="node">
-        {% for row in nodes %}<li>{{ row.node.provider }} - {{ row.node.name }} - {{ row.node.public_ip }} - {{ row.node.state }}<span class="actions">{% for a in row.actions %}<a href="{% if a.confirmation %}javascript:confirmation('{{ a.confirmation }}', '{% endif %}/node/{{ row.node.id }}/{{ a.action }}{% if a.confirmation %}');{% endif %}">{{ a.label }}</a>{% endfor %}</span></li>{% endfor %}
+        {% for row in nodes %}<li id="n_{{ row.node.provider.id }}_{{ row.node.id }}"><span class="name" data-tooltip="{{ row.data }}">{{ row.node.provider }} - {{ row.node.name }} - {{ row.node.public_ip }} - {{ row.node.state }}</span><span class="actions">{% for a in row.actions %}<a href="{% if a.confirmation %}javascript:confirmation('{{ a.confirmation }}', '{% endif %}/node/{{ row.node.id }}/{{ a.action }}{% if a.confirmation %}');{% endif %}">{{ a.label }}</a>{% endfor %}</span></li>
+        {% endfor %}
     </ul>
 {% endblock %}
 {% block sidebar %}

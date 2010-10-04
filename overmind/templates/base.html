@@ -5,10 +5,14 @@
     <title>Overmind{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="/media/css/default.css">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script src="/media/js/jquery.tooltip.min.js"></script>
+    <link rel="stylesheet" href="/media/css/jquery.tooltip.css">
+    <script src="/media/js/jquery.dimensions.js"></script>
     <script src="/media/js/main.js"></script>
     <!--[if IE]>
     <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    {% block script %}{% endblock %}
 </head>
 <body>
 <div id="hwrapper">
