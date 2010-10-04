@@ -23,7 +23,7 @@ class GETProviderTest(TestCase):
         self.assertEquals(content[1]['access_key'], self.p2.access_key)
     
     def test_get_providers_by_type(self):
-        '''Filter providers by type'''
+        '''Get all providers of a particular type'''
         pass
 
     def test_get_provider_by_id(self):
@@ -68,6 +68,10 @@ class POSTProviderTest(TestCase):
         resp = self.client.post(self.path, data, content_type='application/json')
         self.assertEquals(resp.status_code, 200)
         self.assertEquals(resp.content, expected)
+        #Check that it really is in the DB
+        p = Provider.objects.get(id=1)
+        self.assertEquals(p.name, 'A new provider')
+        self.assertEquals(p.provider_type, 'DUMMY')
 
     def test_missing_key(self):
         """Create a new provider with missing access_key"""
@@ -82,3 +86,5 @@ class POSTProviderTest(TestCase):
             self.path, simplejson.dumps(data), content_type='application/json')
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, expected)
+        # Make sure it wasn't saved in the DB
+        self.assertEquals(len(Provider.objects.all()), 0)
