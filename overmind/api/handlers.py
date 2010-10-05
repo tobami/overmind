@@ -101,6 +101,9 @@ class ProviderHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
+        if not hasattr(request, "data"):
+            request.data = request.POST
+        attrs = self.flatten_dict(request.data)
         id = kwargs.get('id')
         if id is None:
             return rc.BAD_REQUEST
@@ -224,6 +227,9 @@ class NodeHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
+        if not hasattr(request, "data"):
+            request.data = request.POST
+        attrs = self.flatten_dict(request.data)
         id = kwargs.get('id')
         if id is None:
             return rc.BAD_REQUEST
@@ -232,11 +238,10 @@ class NodeHandler(BaseHandler):
             node = self.model.objects.get(id=id)
         except self.model.DoesNotExist:
             return rc.NOT_FOUND
-        attrs = self.flatten_dict(request.POST)
         
         # Update name if present
         name = attrs.get('name')
-        if name is not None:
+        if name is not None and name != node.name:
             try:
                 self.model.objects.get(name=name)
                 return rc.DUPLICATE_ENTRY

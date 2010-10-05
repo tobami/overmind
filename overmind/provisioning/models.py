@@ -91,11 +91,13 @@ class Provider(models.Model):
         nodes = self.conn.get_nodes()
         # Import nodes not present in the DB
         for node in nodes:
+            print node
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
                 # Don't import already existing node, update instead
                 n.public_ip = node.public_ip[0]
                 n.state     = get_state(node.state)
+                n.production_state = 'PR'
                 n.save()
             except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
@@ -122,7 +124,7 @@ class Provider(models.Model):
             if not found:
                 n.delete()
                 logging.info("import_nodes(): Deleted node %s" % n)
-        logging.debug("Finished synching" % node)
+        logging.debug("Finished synching")
     
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
@@ -130,17 +132,14 @@ class Provider(models.Model):
         self.import_nodes()
     
     def get_flavors(self):
-        if not self.supports('flavors'): return
         self.create_connection()
         return self.conn.get_flavors()
     
     def get_images(self):
-        if not self.supports('images'): return
         self.create_connection()
         return self.conn.get_images()
     
     def get_realms(self):
-        if not self.supports('realms'): return
         self.create_connection()
         return self.conn.get_realms()
     

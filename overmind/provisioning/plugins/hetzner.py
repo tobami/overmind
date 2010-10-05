@@ -2,6 +2,7 @@
 from libcloud.base import ConnectionUserAndKey, NodeDriver, Node
 from libcloud.types import NodeState, InvalidCredsException
 import httplib2, simplejson
+from urllib import urlencode
 
 display_name = "Hetzner"
 access_key   = 'User'
@@ -94,9 +95,3 @@ class Driver(NodeDriver):
         response = self.connection.request(
             'reset/' + node.public_ip[0] + "/", method='POST', params=params
         )
-    
-    #TODO: remove dummy methods
-    # and catch NotImplemented Exceptions upstream (or check supported)
-    def list_images(self): return []
-    def list_sizes(self): return []
-    def list_locations(self): return []

@@ -24,6 +24,7 @@ class GETProviderTest(TestCase):
     
     def test_get_providers_by_type(self):
         '''Get all providers of a particular type'''
+        #TODO: implement me!
         pass
 
     def test_get_provider_by_id(self):
@@ -38,6 +39,7 @@ class GETProviderTest(TestCase):
     
     def test_get_provider_by_name(self):
         '''Get a provider by name'''
+        #TODO: implement me!
         pass
     
     def test_get_provider_by_id_not_found(self):
