@@ -191,6 +191,7 @@ class NodeHandler(BaseHandler):
                     node.uuid      = data_from_provider['uuid']
                     node.public_ip = data_from_provider['public_ip']
                     node.state     = get_state(data_from_provider['state'])
+                    node.save_extra_data(data_from_provider.get('extra', ''))
                     node.save()
                     logging.info('New node created %s' % node)
                     return node

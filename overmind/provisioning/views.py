@@ -14,8 +14,11 @@ def overview(request):
         datatable = "<table>"
         fields = [
             ['uuid', n.uuid],
-            ['timestamp', n.timestamp],
+            ['timestamp', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
         ]
+        for k,v in n.get_extra_data().items():
+            fields.append([k,v])
+        
         for field in fields:
             datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1]) + "</td></tr></td>"
         datatable += "</table>"
@@ -129,6 +132,7 @@ def newnode(request):
                     node.uuid      = data_from_provider['uuid']
                     node.public_ip = data_from_provider['public_ip']
                     node.state     = get_state(data_from_provider['state'])
+                    node.save_extra_data(data_from_provider.get('extra', ''))
                     node.save()
                     logging.info('New node created %s' % node)
                     return HttpResponse('<p>success</p>')

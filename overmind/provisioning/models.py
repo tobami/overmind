@@ -2,6 +2,7 @@ from django.db import models
 from overmind.provisioning.controllers import ProviderController
 from provider_meta import PROVIDERS
 import logging
+import simplejson as json
 
 provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
@@ -91,7 +92,6 @@ class Provider(models.Model):
         nodes = self.conn.get_nodes()
         # Import nodes not present in the DB
         for node in nodes:
-            print node
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
                 # Don't import already existing node, update instead
@@ -108,6 +108,7 @@ class Provider(models.Model):
                     public_ip = node.public_ip[0],
                     state     = get_state(node.state),
                 )
+                n.save_extra_data(node.extra)
                 n.save()
                 logging.info("import_nodes(): succesfully added %s" % node)
         
@@ -188,7 +189,7 @@ class Node(models.Model):
     public_ip         = models.CharField(max_length=25)
     internal_ip       = models.CharField(max_length=25, blank=True)
     hostname          = models.CharField(max_length=25, blank=True)
-    
+    extra_data        = models.TextField(blank=True)
     # Overmind related fields
     production_state  = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
@@ -200,6 +201,13 @@ class Node(models.Model):
     
     def __unicode__(self):
         return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.uuid + ">"
+    
+    def save_extra_data(self, data):
+        self.extra_data = json.dumps(data)
+    
+    def get_extra_data(self):
+        if self.extra_data == '': return {}
+        return json.loads(self.extra_data)
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''

@@ -1,7 +1,8 @@
 # Hetzner plugin
 from libcloud.base import ConnectionUserAndKey, NodeDriver, Node
 from libcloud.types import NodeState, InvalidCredsException
-import httplib2, simplejson
+import httplib2
+import simplejson as json
 from urllib import urlencode
 
 display_name = "Hetzner"
@@ -43,7 +44,7 @@ class Connection():
             data,
         )
         if response.get('status') == '200':
-            return simplejson.loads(content)
+            return json.loads(content)
         else:
             self._raise_error(response, content)
 
