@@ -116,16 +116,17 @@ def node(request):
 def newnode(request):
     error = None
     if request.method == 'POST':
-        success, form, node = save_new_node(request.POST)
-        if success: return HttpResponse('<p>success</p>')
+        error, form, node = save_new_node(request.POST)
+        if error is None: return HttpResponse('<p>success</p>')
     else:
         form = NodeForm(request.GET.get("provider"))
-    
+    if error == 'form': error = None
     return render_to_response('node_form.html', { 'form': form, 'error': error })
 
 def save_new_node(data):
     provider_id = data.get("provider")
     form = NodeForm(provider_id, data)
+    error = None
     if form.is_valid():
         provider = Provider.objects.get(id=provider_id)
         try:
@@ -135,7 +136,7 @@ def save_new_node(data):
             error = 'A node with that name already exists'
         except Node.DoesNotExist:
             error, data_from_provider = provider.create_node(form)
-            if not error:
+            if error is None:
                 node = form.save(commit = False)
                 node.uuid      = data_from_provider['uuid']
                 node.public_ip = data_from_provider['public_ip']
@@ -143,9 +144,10 @@ def save_new_node(data):
                 node.save_extra_data(data_from_provider.get('extra', ''))
                 node.save()
                 logging.info('New node created %s' % node)
-                return True, form, node
+                return None, form, node
     else:
-        return False, form, None
+        error = 'form'
+    return error, form, None
 
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)
