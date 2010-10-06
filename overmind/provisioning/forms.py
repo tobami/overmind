@@ -34,21 +34,27 @@ class NodeForm(ModelForm):
         super(NodeForm, self).__init__(*args, **kwargs)
         p = Provider.objects.get(id=provider_id)
         self.fields['provider'].initial = p.id
+        provider_info = PROVIDERS[p.provider_type]
+        # Add custom plugin fields
+        for field in provider_info.get('form_fields', []):
+            # These fields will be added later
+            if field in ['realm', 'flavor', 'image']: continue
+            self.fields[field] = forms.CharField(max_length=30)
         
-        if PROVIDERS[p.provider_type].get('plugin'):
-            for field in PROVIDERS[p.provider_type].get('form_fields', []):
-                self.fields[field] = forms.CharField(max_length=30)
-        else:
+        # Add realm field
+        if 'realm' in provider_info.get('form_fields', []):
             self.fields['realm'] = forms.ChoiceField()
             for realm in p.get_realms():
                 self.fields['realm'].choices += [
                     (realm.id, realm.country + " - " + realm.name)
                 ]
-            
+        # Add flavor field
+        if 'flavor' in provider_info.get('form_fields', []):
             self.fields['flavor'] = forms.ChoiceField()
             for flavor in p.get_flavors():
                 self.fields['flavor'].choices += [(flavor.id, flavor.name)]
-                
+        # Add flavor field
+        if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
             for img in p.get_images():
                 self.fields['image'].choices += [(img.id, img.name)]
