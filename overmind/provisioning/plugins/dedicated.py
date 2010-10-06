@@ -2,7 +2,6 @@
 from libcloud.base import ConnectionKey, NodeDriver, Node
 from libcloud.types import NodeState
 
-
 display_name = "Dedicated Hardware"
 access_key   = None
 secret_key   = None
@@ -25,9 +24,15 @@ class Driver(NodeDriver):
         self.connection = Connection(self.creds)
     
     def create_node(self, **kwargs):
+        # Validate IP address
         if not kwargs.get('ip'): return None
-        #TODO: Check ip correctness
-        # IP serves as uuid feed
+        try:
+            from IPy import IP
+            IP(kwargs.get('ip'))#raise ValueError if incorrect IP
+        except ImportError:
+            pass#no validation
+        
+        # Return Node object (IP serves as uuid feed)
         n = Node(id=kwargs.get('ip').replace(".",""),
                  name=kwargs.get('name'),
                  state=NodeState.RUNNING,
