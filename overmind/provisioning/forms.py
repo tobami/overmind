@@ -8,9 +8,9 @@ class ProviderForm(ModelForm):
         super(ProviderForm, self).__init__(*args, **kwargs)
         self.fields['provider_type'].widget = forms.HiddenInput()
         self.fields['provider_type'].initial = provider_type
-
+        provider_type = PROVIDERS.get('provider_type', {})
         for field in ['access_key', 'secret_key']:
-            label = PROVIDERS[provider_type].get(field)
+            label = provider_type.get(field)
             if label is None:
                 self.fields[field].widget = forms.HiddenInput()
             else:

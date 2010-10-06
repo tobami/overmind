@@ -78,7 +78,7 @@ class POSTProviderTest(TestCase):
     def test_missing_key(self):
         """Create a new provider with missing access_key"""
         data = {'name': 'A new provider', 'provider_type': 'DUMMY'}
-        expected = "Bad Request: access_key is a required field"
+        expected = "Bad Request\naccess_key: This field is required."
         resp = self.client.post(
             self.path, simplejson.dumps(data), content_type='application/json')
         self.assertEquals(resp.status_code, 400)

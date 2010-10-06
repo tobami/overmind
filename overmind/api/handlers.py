@@ -3,7 +3,7 @@ from piston.utils import rc
 from libcloud.types import InvalidCredsException
 from overmind.provisioning.provider_meta import PROVIDERS
 from overmind.provisioning.models import Provider, Node, get_state
-from overmind.provisioning.views import save_new_node
+from overmind.provisioning.views import save_new_node, save_new_provider
 import copy, logging
 
 
@@ -28,54 +28,21 @@ class ProviderHandler(BaseHandler):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
         
-        # Data validation
-        # Correct provider
-        resp = validate_parameters(attrs, 'provider_type')
-        if resp is not True: return resp
-        if attrs['provider_type'] not in PROVIDERS.keys():
-            resp = rc.BAD_REQUEST
-            resp.write(': wrong provider_type')
-            return resp
-        
-        # All fields are present
-        for field in ['name', 'provider_type']:
-            if field == 'id': continue
-            if field not in attrs:
-                resp = rc.BAD_REQUEST
-                resp.write(': field %s missing' % field)
-                return resp
-        
-        # Validate keys
-        for field in ['access_key', 'secret_key']:
-            if PROVIDERS[attrs['provider_type']][field] is None: continue
-            elif field not in attrs or attrs[field] == "":
-                if PROVIDERS[attrs['provider_type']][field] is not None:
-                    resp = rc.BAD_REQUEST
-                    resp.write(': %s is a required field' % field)
-                    return resp
-        
-        try:
-            # Look for duplicates
-            self.model.objects.get(name=attrs['name'])
-            return rc.DUPLICATE_ENTRY
-        except self.model.DoesNotExist:
-            # Create new provider
-            provider = Provider(
-                name=attrs['name'], 
-                provider_type=attrs['provider_type'],
-                access_key=attrs.get('access_key', ''),
-                secret_key=attrs.get('secret_key', ''),
-            )
-            try:
-                provider.save()
-                provider.import_nodes()
-            except InvalidCredsException:
-                if provider.id is not None: provider.delete()
-                resp = rc.BAD_REQUEST
-                resp.write(': Invalid Credentials')
-                return resp
-            
+        # Pass data to form Validation
+        error, form, provider = save_new_provider(attrs)
+        if error is None:
             return provider
+        else:
+            resp = rc.BAD_REQUEST
+            if error == 'form':
+                for k, v in form.errors.items():
+                    formerror = v[0]
+                    if type(formerror) != unicode:
+                        formerror = formerror.__unicode__()
+                    resp.write("\n" + k + ": " + formerror)
+            else:
+                resp.write("\n" + error)
+            return resp
     
     def read(self, request, *args, **kwargs):
         id = kwargs.get('id')
@@ -152,15 +119,10 @@ class NodeHandler(BaseHandler):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
         
-        # provider_id is correct
-        resp = validate_parameters(attrs, 'provider_id')
-        provider_id = attrs.get('provider_id')
-        if resp is not True: return resp
-        
         # Modify REST "provider_id" to "provider" (expected form field)
         data = copy.deepcopy(request.POST)
-        data['provider'] = data['provider_id']
-        del data['provider_id']
+        data['provider'] = data.get('provider_id','')
+        if 'provider_id' in data: del data['provider_id']
         
         # Validate data and save new node
         error, form, node = save_new_node(data)
@@ -171,7 +133,7 @@ class NodeHandler(BaseHandler):
             if error == 'form':
                 for k, v in form.errors.items():
                     formerror = v[0]
-                    if type(error) != unicode:
+                    if type(formerror) != unicode:
                         formerror = formerror.__unicode__()
                     resp.write("\n" + k + ": " + formerror)
             else:

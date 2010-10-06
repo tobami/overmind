@@ -67,35 +67,43 @@ def provider(request):
     })
 
 def newprovider(request):
+    error = None
     if request.method == 'POST':
-        provider_type = request.POST.get("provider_type")
-        form = ProviderForm(provider_type, request.POST)
-        if form.is_valid():
-            newprovider = None
-            try:
-                newprovider = form.save()
-                #TODO: defer importing to a work queue
-                newprovider.import_nodes()
-            except InvalidCredsException:
-                # Delete provider if InvalidCreds is raised (by EC2)
-                # after it has been saved
-                if newprovider: newprovider.delete()
-                return render_to_response('provider_form.html', {
-                    'form': form,
-                    'error': 'Invalid account credentials',
-                })
-            except Exception, e:
-                error = e
-                logging.error(error)
-            return HttpResponse('<p>success</p>')
+        try:
+            error, form, provider = save_new_provider(request.POST)
+        except Exception, e:
+            print type(e), e
+        if error is None: return HttpResponse('<p>success</p>')
     else:
-        if "provider_type" in request.GET:
-            form = ProviderForm(request.GET.get("provider_type"))
+        form = ProviderForm(request.GET.get("provider_type"))
+    if error == 'form': error = None
+    return render_to_response('provider_form.html', { 'form': form, 'error': error })
+
+def save_new_provider(data):
+    error = None
+    form = None
+    form = ProviderForm(data.get('provider_type'), data)
+    if form.is_valid():
+        newprovider = None
+        try:
+            newprovider = form.save()
+            #TODO: defer importing to a work queue
+            newprovider.import_nodes()
+        except InvalidCredsException:
+            # Delete provider if InvalidCreds is raised (by EC2)
+            # after it has been saved
+            if newprovider: newprovider.delete()
+            # Return form with InvalidCreds error
+            error = 'Invalid account credentials'
+        except Exception, e:
+            error = e
+            logging.error(error)
         else:
-            raise Exception
-            #TODO: proper HttpError
-    
-    return render_to_response('provider_form.html', { 'form': form })
+            logging.info('New provider created %s' % newprovider.name)
+            return None, form, newprovider
+    else:
+        error = 'form'
+    return error, form, None
 
 def updateproviders(request):
     providers = Provider.objects.all()
@@ -128,6 +136,7 @@ def newnode(request):
 
 def save_new_node(data):
     provider_id = data.get("provider")
+    if not provider_id: return 'Incorrect provider id', None, None
     error = None
     form = None
     try:

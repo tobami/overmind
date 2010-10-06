@@ -59,17 +59,11 @@ class Provider(models.Model):
             self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
         
         # Check connection and save new provider
-        try:
-            self.create_connection()
-            # If connection was succesful save provider
-            super(Provider, self).save(*args, **kwargs)
-            logging.debug('provider "%s" saved' % self.name)
-        except Exception, e:
-            logging.error(
-                'while saving provider "%s".\n%s was raised: %s' % (self.name, type(e), e)
-            )
-            raise e
-        
+        self.create_connection()
+        # If connection was succesful save provider
+        super(Provider, self).save(*args, **kwargs)
+        logging.debug('provider "%s" saved' % self.name)
+
         # Add supported actions
         for action_name in PROVIDERS[self.provider_type]['supported_actions']:
             try:
