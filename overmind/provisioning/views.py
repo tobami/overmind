@@ -84,6 +84,9 @@ def newprovider(request):
                     'form': form,
                     'error': 'Invalid account credentials',
                 })
+            except Exception, e:
+                error = e
+                logging.error(error)
             return HttpResponse('<p>success</p>')
     else:
         if "provider_type" in request.GET:

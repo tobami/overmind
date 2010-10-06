@@ -96,6 +96,10 @@ class Provider(models.Model):
         for node in nodes:
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
+                # If previously deleted (decommissioned), reimport
+                if n.production_state == 'DE':
+                    n.delete()
+                    raise Node.DoesNotExist
                 # Don't import already existing node, update instead
                 n.public_ip = node.public_ip[0]
                 n.state     = get_state(node.state)
@@ -112,7 +116,7 @@ class Provider(models.Model):
                 )
                 n.save_extra_data(node.extra)
                 n.save()
-                logging.info("import_nodes(): succesfully added %s" % node)
+                logging.info("import_nodes(): succesfully added %s" % node.name)
         
         # Update state and delete nodes in the DB not listed by the provider
         for n in Node.objects.filter(provider=self):

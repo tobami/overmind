@@ -61,10 +61,16 @@ class Driver(NodeDriver):
     def __init__(self, user, password):
         self.connection = Connection(user, password)
     
-    def _parse_nodes(self, response):
+    def _parse_nodes(self, data):
         nodes = []
-        for n in response:
-            nodes.append(n['server'])
+        for n in data:
+            nodedata = n['server']
+            response = self.connection.request('server/%s' % nodedata['server_ip'])
+            nodedata['extra_ips'] = ", ".join(response['server']['ip'])
+            # dict.get() will return None even if we write get('subnet', [])
+            subnets = response['server'].get('subnet') or []
+            nodedata['subnet'] = ", ".join(s['ip'] for s in subnets)
+            nodes.append(nodedata)
         return nodes
     
     def _to_node(self, el):
@@ -76,10 +82,12 @@ class Driver(NodeDriver):
                  private_ip=[],
                  driver=self,
                  extra={
-                    'location': el.get('dc'),
-                    'product': el.get('product'),
-                    'traffic': el.get('traffic'),
+                    'location':   el.get('dc'),
+                    'product':    el.get('product'),
+                    'traffic':    el.get('traffic'),
                     'paid_until': el.get('paid_until'),
+                    'extra_ips':  el.get('extra_ips'),
+                    'subnet':     el.get('subnet'),
                  })
         return n
     
