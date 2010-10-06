@@ -1,0 +1,21 @@
+h1. Overmind
+
+The goal is to have a *unified front-end* to public and private clouds, and dedicated hardware.
+
+h2. Features
+
+* EC2 and Rackspace server provisioning. All clouds supported by libcloud will be supported given enough testing
+* Provider Plugins: Any provider can be integrated by writing either a libcloud driver or an Overmind provisioning plugin
+* Import any server into Overmind witht the "Dedicated Hardware" plugin
+* Complete REST API for provider and nodes
+
+See the Roadmap wiki page for info about the direction of the project
+
+h2. Requirements
+
+* libcloud
+
+h3. Optional
+
+* django-piston (for the REST API)
+* IPy (optional IP address validation for the "Dedicated Hardware" plugin)
