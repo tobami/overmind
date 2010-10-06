@@ -20,12 +20,14 @@ def get_state(state):
     if state not in STATES: state = 4
     return STATES[state]
 
+
 class Action(models.Model):
     name = models.CharField(unique=True, max_length=20)
     show = models.BooleanField()
     
     def __unicode__(self):
         return self.name
+
 
 class Provider(models.Model):
     name              = models.CharField(unique=True, max_length=25)
@@ -75,7 +77,7 @@ class Provider(models.Model):
             except Action.DoesNotExist:
                 raise Exception, 'Unsupported action "%s" specified' % action_name
             self.actions.add(action)
-        
+    
     def supports(self, action):
         try:
             self.actions.get(name=action)

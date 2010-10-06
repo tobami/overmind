@@ -116,30 +116,36 @@ def node(request):
 def newnode(request):
     error = None
     if request.method == 'POST':
-        provider_id = request.POST.get("provider")
-        form = NodeForm(provider_id, request.POST)
-        if form.is_valid():
-            provider = Provider.objects.get(id=provider_id)
-            try:
-                n = Node.objects.get(
-                    provider=provider, name=form.cleaned_data['name']
-                )
-                error = 'A node with that name already exists'
-            except Node.DoesNotExist:
-                error, data_from_provider = provider.create_node(form)
-                if not error:
-                    node = form.save(commit = False)
-                    node.uuid      = data_from_provider['uuid']
-                    node.public_ip = data_from_provider['public_ip']
-                    node.state     = get_state(data_from_provider['state'])
-                    node.save_extra_data(data_from_provider.get('extra', ''))
-                    node.save()
-                    logging.info('New node created %s' % node)
-                    return HttpResponse('<p>success</p>')
+        success, form, node = save_new_node(request.POST)
+        if success: return HttpResponse('<p>success</p>')
     else:
         form = NodeForm(request.GET.get("provider"))
     
     return render_to_response('node_form.html', { 'form': form, 'error': error })
+
+def save_new_node(data):
+    provider_id = data.get("provider")
+    form = NodeForm(provider_id, data)
+    if form.is_valid():
+        provider = Provider.objects.get(id=provider_id)
+        try:
+            n = Node.objects.get(
+                provider=provider, name=form.cleaned_data['name']
+            )
+            error = 'A node with that name already exists'
+        except Node.DoesNotExist:
+            error, data_from_provider = provider.create_node(form)
+            if not error:
+                node = form.save(commit = False)
+                node.uuid      = data_from_provider['uuid']
+                node.public_ip = data_from_provider['public_ip']
+                node.state     = get_state(data_from_provider['state'])
+                node.save_extra_data(data_from_provider.get('extra', ''))
+                node.save()
+                logging.info('New node created %s' % node)
+                return True, form, node
+    else:
+        return False, form, None
 
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)

@@ -3,7 +3,7 @@ from piston.utils import rc
 from libcloud.types import InvalidCredsException
 from overmind.provisioning.provider_meta import PROVIDERS
 from overmind.provisioning.models import Provider, Node, get_state
-from overmind.provisioning.forms import ProviderForm, NodeForm
+from overmind.provisioning.views import save_new_node
 import copy, logging
 
 
@@ -171,30 +171,11 @@ class NodeHandler(BaseHandler):
         data = copy.deepcopy(request.POST)
         data['provider'] = data['provider_id']
         del data['provider_id']
-        form = NodeForm(provider.id, data)
         
-        if form.is_valid():
-            try:
-                n = Node.objects.get(
-                    provider=provider, name=form.cleaned_data['name']
-                )
-                #error = 'A node with that name already exists'
-                return rc.DUPLICATE_ENTRY
-            except Node.DoesNotExist:
-                error, data_from_provider = provider.create_node(form)
-                if error:
-                    resp = rc.INTERNAL_ERROR
-                    resp.write(': Could not create node: %s' % error)
-                    return resp
-                else:
-                    node = form.save(commit = False)
-                    node.uuid      = data_from_provider['uuid']
-                    node.public_ip = data_from_provider['public_ip']
-                    node.state     = get_state(data_from_provider['state'])
-                    node.save_extra_data(data_from_provider.get('extra', ''))
-                    node.save()
-                    logging.info('New node created %s' % node)
-                    return node
+        # Validate data and save new node
+        success, form, node = save_new_node(data)
+        if success:
+            return node
         else:
             resp = rc.BAD_REQUEST
             for k, v in form.errors.items():

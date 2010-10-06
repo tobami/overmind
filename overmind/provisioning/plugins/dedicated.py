@@ -25,8 +25,8 @@ class Driver(NodeDriver):
         self.connection = Connection(self.creds)
     
     def create_node(self, **kwargs):
-        #TODO: Check ip correctness
         if not kwargs.get('ip'): return None
+        #TODO: Check ip correctness
         # IP serves as uuid
         n = Node(id=kwargs.get('ip').replace(".",""),
                  name=kwargs.get('name'),
@@ -35,10 +35,3 @@ class Driver(NodeDriver):
                  private_ip=[],
                  driver=self)
         return n
-    
-    # TODO: remove dummy methods
-    # and catch NotImplemented Exceptions upstream (or check supported)
-    def list_images(self): return []
-    def list_sizes(self): return []
-    def list_locations(self): return []
-
