@@ -125,28 +125,34 @@ def newnode(request):
 
 def save_new_node(data):
     provider_id = data.get("provider")
-    form = NodeForm(provider_id, data)
     error = None
-    if form.is_valid():
+    form = None
+    try:
         provider = Provider.objects.get(id=provider_id)
-        try:
-            n = Node.objects.get(
-                provider=provider, name=form.cleaned_data['name']
-            )
-            error = 'A node with that name already exists'
-        except Node.DoesNotExist:
-            error, data_from_provider = provider.create_node(form)
-            if error is None:
-                node = form.save(commit = False)
-                node.uuid      = data_from_provider['uuid']
-                node.public_ip = data_from_provider['public_ip']
-                node.state     = get_state(data_from_provider['state'])
-                node.save_extra_data(data_from_provider.get('extra', ''))
-                node.save()
-                logging.info('New node created %s' % node)
-                return None, form, node
-    else:
-        error = 'form'
+        form = NodeForm(provider_id, data)
+    except Provider.DoesNotExist:
+        error = 'Incorrect provider id'
+    
+    if form is not None:
+        if form.is_valid():
+            try:
+                n = Node.objects.get(
+                    provider=provider, name=form.cleaned_data['name']
+                )
+                error = 'A node with that name already exists'
+            except Node.DoesNotExist:
+                error, data_from_provider = provider.create_node(form)
+                if error is None:
+                    node = form.save(commit = False)
+                    node.uuid      = data_from_provider['uuid']
+                    node.public_ip = data_from_provider['public_ip']
+                    node.state     = get_state(data_from_provider['state'])
+                    node.save_extra_data(data_from_provider.get('extra', ''))
+                    node.save()
+                    logging.info('New node created %s' % node)
+                    return None, form, node
+        else:
+            error = 'form'
     return error, form, None
 
 def rebootnode(request, node_id):

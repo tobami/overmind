@@ -157,32 +157,25 @@ class NodeHandler(BaseHandler):
         provider_id = attrs.get('provider_id')
         if resp is not True: return resp
         
-        # Provider exists
-        try:
-            provider = Provider.objects.get(id=provider_id)
-            if not provider.supports('create'):
-                return rc.NOT_IMPLEMENTED
-        except Provider.DoesNotExist:
-            resp = rc.BAD_REQUEST
-            resp.write(': Provider with id="%s" does not exist' % provider_id)
-            return resp
-        
         # Modify REST "provider_id" to "provider" (expected form field)
         data = copy.deepcopy(request.POST)
         data['provider'] = data['provider_id']
         del data['provider_id']
         
         # Validate data and save new node
-        success, form, node = save_new_node(data)
-        if success:
+        error, form, node = save_new_node(data)
+        if error is None:
             return node
         else:
             resp = rc.BAD_REQUEST
-            for k, v in form.errors.items():
-                error = v[0]
-                if type(error) != unicode:
-                    error = error.__unicode__()
-                resp.write("\n" + k + ": " + error)
+            if error == 'form':
+                for k, v in form.errors.items():
+                    formerror = v[0]
+                    if type(error) != unicode:
+                        formerror = formerror.__unicode__()
+                    resp.write("\n" + k + ": " + formerror)
+            else:
+                resp.write("\n" + error)
             return resp
     
     def read(self, request, *args, **kwargs):
