@@ -27,7 +27,7 @@ class Driver(NodeDriver):
     def create_node(self, **kwargs):
         if not kwargs.get('ip'): return None
         #TODO: Check ip correctness
-        # IP serves as uuid
+        # IP serves as uuid feed
         n = Node(id=kwargs.get('ip').replace(".",""),
                  name=kwargs.get('name'),
                  state=NodeState.RUNNING,

@@ -1,5 +1,6 @@
 from libcloud import types
 from libcloud.base import NodeAuthPassword, NodeAuthSSHKey
+from libcloud.base import NodeImage, NodeSize, NodeLocation
 from libcloud.providers import get_driver
 from libcloud.deployment import SSHKeyDeployment
 from overmind.provisioning import plugins
@@ -39,29 +40,13 @@ class ProviderController():
     
     def create_node(self, form):
         name   = form.cleaned_data['name']
-        #TODO: get image, size, location id from the form image name
-        image  = None
-        flavor = None
-        realm  = None
-        #Choose correct image
-        for img in self.get_images():
-            image = img
-            if image.id == form.cleaned_data['image']:
-                break
-        #Choose correct flavor
-        for f in self.get_flavors():
-            flavor = f
-            if flavor.id == form.cleaned_data['flavor']:
-                break
-        #Choose correct realm
-        for r in self.get_realms():
-            realm = r
-            if realm.id == form.cleaned_data['realm']:
-                break
+        image  = NodeImage(form.cleaned_data.get('image'), '', self.conn)
+        flavor = NodeSize(form.cleaned_data.get('flavor'), '', '', '',
+            None, None, driver=self.conn)
+        realm  = NodeLocation(form.cleaned_data.get('realm'), '', '', self.conn)
         
         # Choose node creation strategy
         features = self.conn.features.get('create_node', [])
-        
         try:
             if "ssh_key" in features:
                 # Pass on public key and we are done
