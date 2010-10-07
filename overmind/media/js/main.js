@@ -6,6 +6,8 @@ function confirmation(message, target) {
 }
 
 function ajaxSubmit(form) {
+    var toOpacity = 0.3;
+    var duration = 100;
     //check the form is not currently submitting
     if(form.data('formstatus') !== 'submitting'){
         //setup variables

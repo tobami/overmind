@@ -2,9 +2,6 @@
 {% block title %}: Add a Provider{% endblock %}
 {% block script %}
     <script>
-        var toOpacity = 0.3;
-        var duration = 100;
-        
         function getProviderForm() {
             var provider_type = $("input:radio[name='provider_type']:checked").val();
             $("form#newprovider").load("new/?provider_type=" + provider_type);

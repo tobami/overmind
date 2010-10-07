@@ -1,30 +1,10 @@
 {% extends "base.html" %}
 {% block title %}: New Node{% endblock %}
-
-{% block sidebar %}{% endblock %}
-
-{% block content %}
-    <h2>Launch a new node</h2>
-    <ul>
-        <li>
-            <h3>Provider</h3>
-            <ul>{% for provider in provider_list %}
-            <li>
-                <input id="provider_{{ provider.id }}" type="radio" name="provider" value="{{ provider.id }}" />
-                <label for="provider_{{ provider.id }}">{{ provider }}</label>
-            </li>{% endfor %}
-            </ul>
-        </li>
-    </ul>
-    <hr />
-    <form id="newnode" action="new/" method="post"></form>
-    <div id="loading"></div>
-    
+{% block script %}
     <script>
-        var toOpacity = 0.3;
-        var duration = 100;
-        
         function getNodeForm() {
+            var toOpacity = 0.3;
+            var duration = 100;
             var provider = $("input:radio[name='provider']:checked").val();
             $("form#newnode").fadeTo(duration, toOpacity);
             $('#loading').show();
@@ -45,5 +25,24 @@
             });
         });
     </script>
+{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+    <h2>Launch a new node</h2>
+    <ul>
+        <li>
+            <h3>Provider</h3>
+            <ul>{% for provider in provider_list %}
+            <li>
+                <input id="provider_{{ provider.id }}" type="radio" name="provider" value="{{ provider.id }}" />
+                <label for="provider_{{ provider.id }}">{{ provider }}</label>
+            </li>{% endfor %}
+            </ul>
+        </li>
+    </ul>
+    <hr />
+    <form id="newnode" action="new/" method="post"></form>
+    <div id="loading"></div>
 {% endblock %}
 
