@@ -1,27 +1,6 @@
 {% extends "base.html" %}
 {% block title %}: Add a Provider{% endblock %}
-
-{% block sidebar %}{% endblock %}
-
-{% block content %}
-    <div class="form">
-        <h2>Add a new Provider</h2>
-        <ul>
-            <li>
-                <h3>Provider</h3>
-                <ul>{% for provider in provider_types %}
-                <li>
-                    <input id="provider_{{ provider.0 }}" type="radio" name="provider_type" value="{{ provider.0 }}" />
-                    <label for="provider_{{ provider.0 }}">{{ provider.1 }}</label>
-                </li>{% endfor %}
-                </ul>
-            </li>
-        </ul>
-        
-        <form id="newprovider" action="new/" method="post"></form>
-    </div>
-    <div id="loading"></div>
-    
+{% block script %}
     <script>
         var toOpacity = 0.3;
         var duration = 100;
@@ -42,5 +21,26 @@
             });
         });
     </script>
+{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block content %}
+    <div class="form">
+        <h2>Add a new Provider</h2>
+        <ul>
+            <li>
+                <h3>Provider</h3>
+                <ul>{% for provider in provider_types %}
+                <li>
+                    <input id="provider_{{ provider.0 }}" type="radio" name="provider_type" value="{{ provider.0 }}" />
+                    <label for="provider_{{ provider.0 }}">{{ provider.1 }}</label>
+                </li>{% endfor %}
+                </ul>
+            </li>
+        </ul>
+        
+        <form id="newprovider" action="new/" method="post"></form>
+    </div>
+    <div id="loading"></div>
 {% endblock %}
 

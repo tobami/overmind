@@ -23,8 +23,10 @@
                 <li><a href="/overview/">Overview</a></li>
                 <li><a href="/provider/">New Provider</a></li>
                 <li><a href="/node/">New Node</a></li>
+                <li><a href="/settings/">Settings</a></li>
             </ul>
         </nav>
+        {% if user.is_authenticated %}<p><a href="/accounts/logout/?next=/overview">Logout</a></p>{% endif %}
     </header>
 </div>
 <div id="content">{% block sidebar %}{% endblock %}

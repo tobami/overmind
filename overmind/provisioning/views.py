@@ -1,11 +1,14 @@
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from overmind.provisioning.models import Action, Provider, Node, get_state
 from overmind.provisioning.forms import ProviderForm, NodeForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
 import logging
 
+@login_required
 def overview(request):
     provider_list = Provider.objects.all()
     nodes = []
@@ -54,8 +57,10 @@ def overview(request):
     return render_to_response('overview.html', {
         'nodes': nodes,
         'provider_list': provider_list,
+        'user': request.user,
     })
 
+@login_required
 def provider(request):
     providers = []
     provider_types = PROVIDERS.keys()
@@ -64,9 +69,10 @@ def provider(request):
         providers.append([p, PROVIDERS[p]['display_name']])
     
     return render_to_response('provider.html', {
-        'provider_types': providers,
+        'provider_types': providers, 'user': request.user,
     })
 
+@login_required
 def newprovider(request):
     error = None
     if request.method == 'POST':
@@ -103,6 +109,7 @@ def save_new_provider(data):
         error = 'form'
     return error, form, None
 
+@login_required
 def updateproviders(request):
     providers = Provider.objects.all()
     for provider in providers:
@@ -110,18 +117,22 @@ def updateproviders(request):
             provider.update()
     return HttpResponseRedirect('/overview/')
 
+@login_required
 def deleteprovider(request, provider_id):
     #TODO: turn into DELETE request? RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
     return HttpResponseRedirect('/overview/')
 
+@login_required
 def node(request):
     '''Displays a provider selection list to call the appropiate node creation form'''
     return render_to_response('node.html', {
         'provider_list': Action.objects.get(name='create').provider_set.all(),
+        'user': request.user,
     })
 
+@login_required
 def newnode(request):
     error = None
     if request.method == 'POST':
@@ -165,13 +176,22 @@ def save_new_node(data):
             error = 'form'
     return error, form, None
 
+@login_required
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.reboot()
     #TODO: result true or false. Show message accordingly
     return HttpResponseRedirect('/overview/')
 
+@login_required
 def destroynode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.destroy()
     return HttpResponseRedirect('/overview/')
+
+@login_required
+def settings(request):
+    return render_to_response('settings.html', {
+        'user': request.user,
+        'user_list': User.objects.all(),
+    })

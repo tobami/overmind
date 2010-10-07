@@ -16,6 +16,7 @@ urlpatterns += patterns('',
     (r'^overview/$', 'overmind.provisioning.views.overview'),
     (r'^provider/$', 'overmind.provisioning.views.provider'),
     (r'^node/$', 'overmind.provisioning.views.node'),
+    (r'^settings/$', 'overmind.provisioning.views.settings'),
     
     # Create
     (r'^provider/new/$', 'overmind.provisioning.views.newprovider'),
@@ -30,5 +31,9 @@ urlpatterns += patterns('',
         'overmind.provisioning.views.deleteprovider'),
     (r'^node/(?P<node_id>\d+)/destroy/$',\
         'overmind.provisioning.views.destroynode'),
-    #(r'^', 'redirect_to', {'url': '/overview/'}),
+    #(r'^$', 'redirect_to', {'url': '/overview/'}),
+    
+    # Users
+    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+    (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
 )

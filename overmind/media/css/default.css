@@ -51,6 +51,9 @@ header nav { display: table-cell; }
         color: #fff;
     }
 
+header p { color: #AAA; position: absolute; top: 0; margin-top: 2px; }
+header p a { text-decoration: none; }
+header p a:visited { color: #AAA; }
 #content {
     display: table;
     margin-top: 43px;
@@ -115,6 +118,32 @@ div#sidebar {
     }
 
 form ul.errorlist li, p.error { color: red; }
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0px;
+    border: 1px solid #CDCDCD;
+    background-color: #fafafa;
+}
+
+table th {
+    padding: 4px;
+    padding-right: 12px;
+    width: 5.5em;
+    text-align: center;
+/*     background-color: #9DADC6; */
+    background: url("/media/images/sidebar_section_background.png") repeat-x;
+    border: 1px solid #CDCDCD;
+    font-size: 8pt;
+/*     width: 5em; border: black 1px solid; */
+}
+
+table td {
+    color: #3D3D3D;
+    padding: 4px 5px 3px 5px;
+    background-color: #FFF;
+    border: 1px solid #CDCDCD;
+}
 
 /* Loading box of width=height=100px with a spinner placed at the center */
 #loading {

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}: Settings{% endblock %}
+{% block script %}
+    <script>
+        var toOpacity = 0.3;
+        var duration = 100;
+        
+        function getProviderForm() {
+            var provider_type = $("input:radio[name='provider_type']:checked").val();
+            $("form#newprovider").load("new/?provider_type=" + provider_type);
+        }
+        
+        function changeTab(tabtext) {
+            $('div.tab').each(function() {
+                if ($(this).is(":visible")) { $(this).hide(); }
+            });
+            $('#'+tabtext).show();
+        }
+        $(function() {
+            $('#sidebar div.section ul li').click(function() {
+                changeTab($(this).text())
+            });
+            
+        /*console.log();
+            $('#loading').hide();
+            $("input:radio[name='provider_type']").change(getProviderForm);
+            
+            $('form#newprovider').submit(function() {
+                ajaxSubmit($(this));
+                //prevent form from submitting
+                return false;
+            });*/
+        });
+    </script>
+{% endblock %}
+{% block content %}
+<div id='Users'>
+<table>
+    <tr><th>Name</th><th>first_name</th><th>last_name</th><th>Staff</th></tr>
+{% for u in user_list %}    <tr>
+        <td>{{ u.username }}</td><td>{{ u.first_name }}</td><td>{{ u.last_name }}</td><td>{{ u.is_staff }}</td>
+    </tr>
+{% endfor %}</table>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+    <div id="sidebar">
+        <div class="section">
+            <ul>
+                <li>Users</li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
