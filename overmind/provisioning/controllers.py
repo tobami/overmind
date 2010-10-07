@@ -81,7 +81,7 @@ class ProviderController():
                 for field in ['name', 'image', 'flavor', 'realm', 'provider']:
                     if field in args:
                         del args[field]#Avoid colissions with default args
-                args[self.extra_param_name] = self.extra_param_value
+                args[str(self.extra_param_name)] = str(self.extra_param_value)
                 
                 node = self.conn.create_node(
                     name=name, image=image, size=flavor, location=realm, **args

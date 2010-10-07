@@ -69,10 +69,7 @@ def provider(request):
 def newprovider(request):
     error = None
     if request.method == 'POST':
-        try:
-            error, form, provider = save_new_provider(request.POST)
-        except Exception, e:
-            print type(e), e
+        error, form, provider = save_new_provider(request.POST)
         if error is None: return HttpResponse('<p>success</p>')
     else:
         form = ProviderForm(request.GET.get("provider_type"))
