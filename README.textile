@@ -1,6 +1,6 @@
 h1. Overmind
 
-The goal is to have a *unified front-end* to public and private clouds, and dedicated hardware.
+The first verion is a *unified front-end* to public and private clouds, and dedicated hardware.
 
 h2. Features
 
@@ -9,10 +9,12 @@ h2. Features
 * Import any server into Overmind witht the "Dedicated Hardware" plugin
 * Complete REST API for provider and nodes
 
-See the Roadmap wiki page for info about the direction of the project
+See the Roadmap wiki page for info about the future direction of the project
 
 h2. Requirements
 
+* Python 2.6+
+* Django 1.1+
 * libcloud
 
 h3. Optional
