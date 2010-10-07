@@ -23,30 +23,31 @@ def overview(request):
             datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1]) + "</td></tr></td>"
         datatable += "</table>"
         
-        actions = n.provider.actions.filter(show=True)
         actions_list = []
-        
-        if actions.filter(name='reboot'):
-            actions_list.append({
-                'action': 'reboot',
-                'label': 'reboot',
-                'confirmation': 'Are you sure you want to reboot the node "%s"'\
-                % n.name,
-            })
-        
-        if actions.filter(name='destroy'):
-            actions_list.append({
-                'action': 'destroy',
-                'label': 'destroy',
-                'confirmation': 'This action will completely destroy the node %s'\
-                % n.name,
-            })
-        else:
-            actions_list.append({
-                'action': 'destroy',
-                'label': 'delete',
-                'confirmation': 'This action will remove the node %s with IP %s' % (n.name, n.public_ip),
-            })
+        if n.state != 'Terminated':
+            actions = n.provider.actions.filter(show=True)
+            
+            if actions.filter(name='reboot'):
+                actions_list.append({
+                    'action': 'reboot',
+                    'label': 'reboot',
+                    'confirmation': 'Are you sure you want to reboot the node "%s"'\
+                    % n.name,
+                })
+            
+            if actions.filter(name='destroy'):
+                actions_list.append({
+                    'action': 'destroy',
+                    'label': 'destroy',
+                    'confirmation': 'This action will completely destroy the node %s'\
+                    % n.name,
+                })
+            else:
+                actions_list.append({
+                    'action': 'destroy',
+                    'label': 'delete',
+                    'confirmation': 'This action will remove the node %s with IP %s' % (n.name, n.public_ip),
+                })
         
         nodes.append({ 'node': n, 'data': datatable, 'actions': actions_list })
     
