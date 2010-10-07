@@ -7,18 +7,6 @@ from overmind.provisioning.views import save_new_node, save_new_provider
 import copy, logging
 
 
-def validate_parameters(data, param):
-    if data.get(param) is None:
-        resp = rc.BAD_REQUEST
-        resp.write(': Parameter "%s" is missing' % param)
-        return resp
-    elif data.get(param) == "":
-        resp = rc.BAD_REQUEST
-        resp.write(': Parameter "%s" is empty' % param)
-        return resp
-    else:
-        return True
-
 class ProviderHandler(BaseHandler):
     fields = ('id', 'name', 'provider_type', 'access_key', 'secret_key')
     model = Provider
@@ -71,6 +59,8 @@ class ProviderHandler(BaseHandler):
         if not hasattr(request, "data"):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
+        
+        # Check that it is a valid provider
         id = kwargs.get('id')
         if id is None:
             return rc.BAD_REQUEST
@@ -83,26 +73,25 @@ class ProviderHandler(BaseHandler):
         
         # Update name if present
         name = attrs.get('name')
-        if name is not None:
+        if name is not None and name != provider.name:
             try:
                 self.model.objects.get(name=name)
                 return rc.DUPLICATE_ENTRY
             except self.model.DoesNotExist:
-                node.name = name
+                provider.name = name
         
         # Get provider_type (not an update option)
         provider_type = provider.provider_type
         
         # Validate keys
         for field in ['access_key', 'secret_key']:
-            field_value = attrs.get(field)
-            if field_value is None:
+            if PROVIDERS[provider_type][field] is None or field not in attrs:
                 continue
+            field_value = attrs[field]
             if field_value == "":
-                if PROVIDERS[provider_type][field] is not None:
-                    return rc.BAD_REQUEST
-            elif PROVIDERS[provider_type][field] is None:
-                return rc.BAD_REQUEST
+                resp = rc.BAD_REQUEST
+                resp.write(': %s cannot be empty' % param)
+                return resp
             setattr( provider, field, field_value )
         
         provider.save()
