@@ -35,7 +35,7 @@
 {% endblock %}
 {% block content %}
 <div id='Users'>
-<table>
+<table class="listing">
     <tr><th>Name</th><th>first_name</th><th>last_name</th><th>Staff</th></tr>
 {% for u in user_list %}    <tr>
         <td>{{ u.username }}</td><td>{{ u.first_name }}</td><td>{{ u.last_name }}</td><td>{{ u.is_staff }}</td>
