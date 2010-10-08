@@ -119,6 +119,7 @@ div#sidebar {
 
 form ul.errorlist li, p.error { color: red; }
 
+/* Settings */
 table.listing {
     border-collapse: collapse;
     border-spacing: 0px;
@@ -126,7 +127,7 @@ table.listing {
     background-color: #fafafa;
 }
 
-table.listing th {
+table.listing thead tr th {
     padding: 4px;
     padding-right: 12px;
     width: 5.5em;
@@ -136,12 +137,16 @@ table.listing th {
     font-size: 8pt;
 }
 
-table.listing td {
+table.listing tbody tr td {
     color: #3D3D3D;
     padding: 4px 5px 3px 5px;
     background-color: #FFF;
     border: 1px solid #CDCDCD;
 }
+
+table.listing tbody tr:hover td { background-color: #F0F0F0; }
+
+a#createuser { margin: 1em 7em 3em 7em; display: block; width: 10em; }
 
 /* Loading box of width=height=100px with a spinner placed at the center */
 #loading {

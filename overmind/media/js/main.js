@@ -5,7 +5,7 @@ function confirmation(message, target) {
     }
 }
 
-function ajaxSubmit(form) {
+function ajaxSubmit(form, redirect) {
     var toOpacity = 0.3;
     var duration = 100;
     //check the form is not currently submitting
@@ -29,7 +29,7 @@ function ajaxSubmit(form) {
             data: formData,
             success:function(data){
                 if (data === "<p>success</p>") { 
-                    window.location = "/overview/";
+                    window.location = redirect;
                 }
                 form.data('formstatus','ready');
                 form.html(data);

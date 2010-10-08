@@ -22,11 +22,11 @@
             <ul>
                 <li><a href="/overview/">Overview</a></li>
                 <li><a href="/provider/">New Provider</a></li>
-                <li><a href="/node/">New Node</a></li>
-                <li><a href="/settings/">Settings</a></li>
+                <li><a href="/node/">New Node</a></li>{% if perms.provisioning %}
+                <li><a href="/settings/">Settings</a></li>{% endif %}
             </ul>
         </nav>
-        {% if user.is_authenticated %}<p><a href="/accounts/logout/?next=/overview">Logout</a></p>{% endif %}
+        {% if user.is_authenticated %}<p>{{ user.username }} | <a href="/accounts/logout/?next=/overview">Logout</a></p>{% endif %}
     </header>
 </div>
 <div id="content">{% block sidebar %}{% endblock %}

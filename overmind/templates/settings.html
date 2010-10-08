@@ -2,17 +2,60 @@
 {% block title %}: Settings{% endblock %}
 {% block script %}
     <script>
+        function getUserForm() {
+            $("form#userform").load($('form#userform').attr('action'));
+        }
+        
+        $(function() {
+            {% if perms.auth %}
+            $('table.listing tbody tr').each(function() {
+                $(this).css('cursor', 'pointer');
+                $(this).click(function() {
+                    $('form#userform').attr(
+                        'action', '/accounts/edit/' + $(this).attr('data-id') + '/'
+                    );
+                    getUserForm();
+                });
+            });
+            
+            $('#createuser').click(function() {
+                $('form#userform').attr('action', '/accounts/new/');
+                getUserForm();
+            });
+            {% else %}
+            $('#editprofile').click(getUserForm);
+            {% endif %}
+            $('form#userform').submit(function() {
+                ajaxSubmit($(this), '/settings/');
+                //prevent form from submitting
+                return false;
+            });
+        });
     </script>
 {% endblock %}
 {% block content %}
 <div id='Users'>
+{% if perms.provisioning %}
 <table class="listing">
-    <tr><th>Name</th><th>first_name</th><th>last_name</th><th>Staff</th></tr>
-{% for u in user_list %}    <tr>
-        <td>{{ u.username }}</td><td>{{ u.first_name }}</td><td>{{ u.last_name }}</td><td>{{ u.is_staff }}</td>
-    </tr>
-{% endfor %}</table>
+    <thead>
+        <tr><th>Name</th><th>first_name</th><th>last_name</th><th>email</th><th>Role</th></tr>
+    </thead>
+    <tbody>
+    {% for u in user_list %}        <tr data-id="{{ u.id }}">
+            <td>{{ u.username }}</td><td>{{ u.first_name }}</td><td>{{ u.last_name }}</td><td>{{ u.email }}</td><td>{{ u.groups.all.0 }}</td>
+        </tr>
+    {% endfor %}    </tbody>
+</table>
 </div>
+    {% if perms.auth %}
+<p><a id="createuser" href="#">Create new user</a></p>
+<form id="userform" action="/accounts/new/" method="post"></form>
+    {% else %}<p>You don't have permissions to edit or create other users</p>
+<p><a id="editprofile" href="#">Edit your profile</a></p>
+<form id="userform" action="/accounts/edit/{{ user.id }}/" method="post"></form>
+    {% endif %}
+{% else %}<p>You don't have permissions to access this page</p>
+{% endif %}
 {% endblock %}
 
 {% block sidebar %}

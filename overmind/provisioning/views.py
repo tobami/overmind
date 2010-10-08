@@ -1,9 +1,12 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.contrib.auth.decorators import login_required, permission_required
+from django.template import RequestContext
 from overmind.provisioning.models import Action, Provider, Node, get_state
 from overmind.provisioning.forms import ProviderForm, NodeForm
+from overmind.provisioning.forms import UserCreationFormExtended, UserEditForm
+from overmind.provisioning.forms import ProfileEditForm
 from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
 import logging
@@ -27,7 +30,8 @@ def overview(request):
         datatable += "</table>"
         
         actions_list = []
-        if n.state != 'Terminated':
+        if n.state != 'Terminated' and \
+            request.user.has_perm('provisioning.change_node'):
             actions = n.provider.actions.filter(show=True)
             
             if actions.filter(name='reboot'):
@@ -54,11 +58,11 @@ def overview(request):
         
         nodes.append({ 'node': n, 'data': datatable, 'actions': actions_list })
     
-    return render_to_response('overview.html', {
+    variables = RequestContext(request, {
         'nodes': nodes,
         'provider_list': provider_list,
-        'user': request.user,
     })
+    return render_to_response('overview.html', variables)
 
 @login_required
 def provider(request):
@@ -68,9 +72,10 @@ def provider(request):
     for p in provider_types:
         providers.append([p, PROVIDERS[p]['display_name']])
     
-    return render_to_response('provider.html', {
+    variables = RequestContext(request, {
         'provider_types': providers, 'user': request.user,
     })
+    return render_to_response('provider.html', variables)
 
 @login_required
 def newprovider(request):
@@ -127,10 +132,10 @@ def deleteprovider(request, provider_id):
 @login_required
 def node(request):
     '''Displays a provider selection list to call the appropiate node creation form'''
-    return render_to_response('node.html', {
+    variables = RequestContext(request, {
         'provider_list': Action.objects.get(name='create').provider_set.all(),
-        'user': request.user,
     })
+    return render_to_response('node.html', variables)
 
 @login_required
 def newnode(request):
@@ -180,7 +185,6 @@ def save_new_node(data):
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.reboot()
-    #TODO: result true or false. Show message accordingly
     return HttpResponseRedirect('/overview/')
 
 @login_required
@@ -191,7 +195,65 @@ def destroynode(request, node_id):
 
 @login_required
 def settings(request):
-    return render_to_response('settings.html', {
-        'user': request.user,
+    variables = RequestContext(request, {
         'user_list': User.objects.all(),
     })
+    return render_to_response('settings.html', variables)
+
+@permission_required('auth.add_user')
+def adduser(request):
+    if request.method == 'POST':
+        form = UserCreationFormExtended(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse('<p>success</p>')
+    else:
+        form = UserCreationFormExtended()
+    
+    return render_to_response("registration/register.html",
+        {'form': form, 'editing': False}
+    )
+
+@login_required
+def edituser(request, id):
+    edit_user = get_object_or_404(User, id=id)
+    user_is_admin = False
+    if request.user.has_perm('auth.change_user'):
+        user_is_admin = True
+    elif request.user.id != int(id):
+        return HttpResponse("<p>Your don't have permissions to edit users</p>")
+    
+    if request.method == 'POST':
+        if user_is_admin:
+            form = UserEditForm(request.POST, instance=edit_user)
+        else:
+            form = ProfileEditForm(request.POST, instance=edit_user)
+        
+        if form.is_valid():
+            form.save()
+            return HttpResponse('<p>success</p>')
+    else:
+        if user_is_admin:
+            form = UserEditForm(instance=edit_user)
+        else:
+            form = ProfileEditForm(instance=edit_user)
+    
+    variables = RequestContext(request, {
+        'form': form, 'editing': True, 'edit_user': edit_user
+    })
+    return render_to_response("registration/register.html", variables)
+
+@permission_required('auth.delete_user')
+def deleteuser(request, id):
+    user = get_object_or_404(User, id=id)
+    if user.has_perm('auth.create_user'):
+        #TODO: Check that there is at least one user with admin rights
+        
+        
+        g = get_object_or_404(Group, name='Admin')
+        admin_users_count = len(g.user_set.all())
+        admin_users_count += len(User.objects.filter(is_superuser=True))
+        if admin_users_count <= 1:
+            return HttpResponse("<p>You cannot delete the only admin user</p>")
+    user.delete()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
