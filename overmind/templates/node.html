@@ -19,7 +19,7 @@
             $("input:radio[name='provider']").change(getNodeForm);
             
             $('form#newnode').submit(function() {
-                ajaxSubmit($(this));
+                ajaxSubmit($(this), '/overview/');
                 //prevent form from submitting
                 return false;
             });

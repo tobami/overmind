@@ -12,7 +12,7 @@
             $("input:radio[name='provider_type']").change(getProviderForm);
             
             $('form#newprovider').submit(function() {
-                ajaxSubmit($(this));
+                ajaxSubmit($(this), '/overview/');
                 //prevent form from submitting
                 return false;
             });

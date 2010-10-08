@@ -28,8 +28,9 @@ function ajaxSubmit(form, redirect) {
             type: formMethod,
             data: formData,
             success:function(data){
-                if (data === "<p>success</p>") { 
-                    window.location = redirect;
+                if (data === "<p>success</p>") {
+                    if (redirect != "none") { window.location = redirect; }
+                    else { return false; }
                 }
                 form.data('formstatus','ready');
                 form.html(data);
