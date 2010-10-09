@@ -225,6 +225,7 @@ def edituser(request, id):
     
     if request.method == 'POST':
         if user_is_admin:
+            #TODO: if group changed, check whether it is the last admin user
             form = UserEditForm(request.POST, instance=edit_user)
         else:
             form = ProfileEditForm(request.POST, instance=edit_user)
@@ -247,9 +248,6 @@ def edituser(request, id):
 def deleteuser(request, id):
     user = get_object_or_404(User, id=id)
     if user.has_perm('auth.create_user'):
-        #TODO: Check that there is at least one user with admin rights
-        
-        
         g = get_object_or_404(Group, name='Admin')
         admin_users_count = len(g.user_set.all())
         admin_users_count += len(User.objects.filter(is_superuser=True))
