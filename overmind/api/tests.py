@@ -9,15 +9,7 @@ import base64
 
 class GETProviderTest(TestCase):
     def setUp(self):
-        permissions = [
-            'add_provider', 'change_provider', 'delete_provider',
-            'add_node', 'change_node', 'delete_node',
-        ]
-        op = Group(name='Operator')
-        op.save()
-        for codename in permissions:
-            op.permissions.add(Permission.objects.get(codename=codename))
-            
+        op = Group.objects.get(name='Operator')
         self.user = User.objects.create_user(
             username='testuser', email='t@t.com', password='test1')
         self.user.groups.add(op)
