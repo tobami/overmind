@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import User, Group, Permission
 
 class Command(BaseCommand):
     help = 'Creates predefined user Roles'
@@ -11,10 +11,16 @@ class Command(BaseCommand):
             'add_node', 'change_node', 'delete_node',
         ]
         
-        admin = Group(name='Admin')
-        admin.save()
-        op = Group(name='Operator')
-        op.save()
+        try:
+            admin = Group.objects.get(name='Admin')
+        except Group.DoesNotExist:
+            admin = Group(name='Admin')
+            admin.save()
+        try:
+            op = Group.objects.get(name='Operator')
+        except Group.DoesNotExist:
+            op = Group(name='Operator')
+            op.save()
         
         for codename in auth_perms:
             admin.permissions.add(Permission.objects.get(codename=codename))
@@ -23,11 +29,19 @@ class Command(BaseCommand):
             admin.permissions.add(Permission.objects.get(codename=codename))
             op.permissions.add(Permission.objects.get(codename=codename))
         
-        ob = Group(name='Observer')
-        ob.save()
+        # Add an Observer role with no rights
+        try:
+            ob = Group.objects.get(name='Observer')
+        except Group.DoesNotExist:
+            ob = Group(name='Observer')
+            ob.save()
+        
+        # Remove superuser status (if any exist) and add the user to the admin group
+        superusers = User.objects.filter(is_superuser=True)
+        for user in superusers:
+            user.is_superuser = False
+            user.save()
+            user.groups = [admin]
         
         print('Successfully loaded permission groups')
-        
-        #TODO: if superuser (admin) user exists,
-        # remove superuser status and add it to the group "Admin"
-        
+

@@ -6,6 +6,12 @@
             $("form#userform").load($('form#userform').attr('action'));
         }
         
+        function formDelete(id) {
+            console.log(id);
+            $('form#userform').attr('action', '/accounts/delete/' + id + '/');
+            $('form#userform').submit();
+        }
+        
         $(function() {
             {% if perms.auth %}
             $('table.listing tbody tr').each(function() {

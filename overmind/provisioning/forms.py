@@ -73,9 +73,10 @@ class UserCreationFormExtended(UserCreationForm):
         self.fields['username'].help_text = None
         self.fields['groups'] = forms.ModelChoiceField(
             queryset=Group.objects.all(),
-            initial = 2,
+            initial = 2,#id of group "Operator"
             help_text = None,
             required = True,
+            label='Role',
         )
     
     class Meta:
@@ -116,7 +117,8 @@ class BasicEditForm(ModelForm):
 
 class UserEditForm(BasicEditForm):
     group = forms.ModelChoiceField(
-        queryset=Group.objects.all(), help_text=None, required=True, initial=2)
+        queryset=Group.objects.all(), help_text=None, required=True,
+        initial=2, label='Role')
     
     def __init__(self, *args, **kwargs):
         super(UserEditForm, self).__init__(*args, **kwargs)

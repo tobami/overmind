@@ -64,7 +64,7 @@ def overview(request):
     })
     return render_to_response('overview.html', variables)
 
-@login_required
+@permission_required('provisioning.add_provider')
 def provider(request):
     providers = []
     provider_types = PROVIDERS.keys()
@@ -77,7 +77,7 @@ def provider(request):
     })
     return render_to_response('provider.html', variables)
 
-@login_required
+@permission_required('provisioning.add_provider')
 def newprovider(request):
     error = None
     if request.method == 'POST':
@@ -122,14 +122,13 @@ def updateproviders(request):
             provider.update()
     return HttpResponseRedirect('/overview/')
 
-@login_required
+@permission_required('provisioning.delete_provider')
 def deleteprovider(request, provider_id):
-    #TODO: turn into DELETE request? RESTify?
     provider = Provider.objects.get(id=provider_id)
     provider.delete()
     return HttpResponseRedirect('/overview/')
 
-@login_required
+@permission_required('provisioning.add_node')
 def node(request):
     '''Displays a provider selection list to call the appropiate node creation form'''
     variables = RequestContext(request, {
@@ -137,7 +136,7 @@ def node(request):
     })
     return render_to_response('node.html', variables)
 
-@login_required
+@permission_required('provisioning.add_node')
 def newnode(request):
     error = None
     if request.method == 'POST':
@@ -181,13 +180,13 @@ def save_new_node(data):
             error = 'form'
     return error, form, None
 
-@login_required
+@permission_required('provisioning.reboot_node')
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.reboot()
     return HttpResponseRedirect('/overview/')
 
-@login_required
+@permission_required('provisioning.delete_node')
 def destroynode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.destroy()
@@ -199,6 +198,14 @@ def settings(request):
         'user_list': User.objects.all(),
     })
     return render_to_response('settings.html', variables)
+
+def count_admin_users():
+    '''Returns the number of users belonging to the Admin group
+ or having superuser rights'''
+    g = get_object_or_404(Group, name='Admin')
+    admin_users_count = len(g.user_set.all())
+    admin_users_count += len(User.objects.filter(is_superuser=True))
+    return admin_users_count
 
 @permission_required('auth.add_user')
 def adduser(request):
@@ -221,11 +228,17 @@ def edituser(request, id):
     if request.user.has_perm('auth.change_user'):
         user_is_admin = True
     elif request.user.id != int(id):
+        # If user doesn't have auth permissions and he/she is not editting
+        # his/her own profile don't allow the operation
         return HttpResponse("<p>Your don't have permissions to edit users</p>")
     
     if request.method == 'POST':
         if user_is_admin:
-            #TODO: if group changed, check whether it is the last admin user
+            group = request.POST.get('group')
+            if group != 1 and count_admin_users() <= 1:
+                #if id of group is not Admin and there is only one admin user
+                return HttpResponse(
+                    "<p>Not allowed: you cannot remove admin rights from the only admin user</p>")
             form = UserEditForm(request.POST, instance=edit_user)
         else:
             form = ProfileEditForm(request.POST, instance=edit_user)
@@ -247,11 +260,8 @@ def edituser(request, id):
 @permission_required('auth.delete_user')
 def deleteuser(request, id):
     user = get_object_or_404(User, id=id)
-    if user.has_perm('auth.create_user'):
-        g = get_object_or_404(Group, name='Admin')
-        admin_users_count = len(g.user_set.all())
-        admin_users_count += len(User.objects.filter(is_superuser=True))
-        if admin_users_count <= 1:
-            return HttpResponse("<p>You cannot delete the only admin user</p>")
+    if user.has_perm('auth.add_user') and count_admin_users() <= 1:
+        return HttpResponse(
+            "<p>Not allowed: You cannot delete the only admin user</p>")
     user.delete()
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    return HttpResponse('<p>success</p>')

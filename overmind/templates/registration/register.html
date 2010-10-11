@@ -1,5 +1,5 @@
 {% block content %}
       {{ form.as_p }}
       <input type="submit" value="{% if editing %}Save{% else %}Create{% endif %}">
-      {% if editing and perms.auth %}<a href="javascript:confirmation('Are you sure you want to delete user {{ edit_user.username }}?', '/accounts/delete/{{edit_user.id }}/');">delete</a>{% endif %}
+      {% if editing and perms.auth %}<a href="javascript:confirmation('Are you sure you want to delete user {{ edit_user.username }}?', 'javascript:formDelete(\'{{ edit_user.id }}\')');">delete</a>{% endif %}
 {% endblock %}

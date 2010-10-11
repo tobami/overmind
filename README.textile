@@ -8,6 +8,7 @@ h2. Features
 * Provider Plugins: Any provider can be integrated by writing either a libcloud driver or an Overmind provisioning plugin
 * Import any server into Overmind witht the "Dedicated Hardware" plugin
 * Complete REST API for provider and nodes
+* Authentication with three user roles
 
 See the Roadmap wiki page for info about the future direction of the project
 
