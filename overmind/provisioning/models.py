@@ -1,5 +1,5 @@
 from django.db import models
-from overmind.provisioning.controllers import ProviderController
+from provisioning.controllers import ProviderController
 from provider_meta import PROVIDERS
 import logging
 import simplejson as json

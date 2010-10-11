@@ -2,7 +2,8 @@ from django.conf.urls.defaults import *
 from piston.resource import Resource
 from piston.authentication import HttpBasicAuthentication
 
-from overmind.api.handlers import ProviderHandler, NodeHandler
+from api.handlers import ProviderHandler, NodeHandler
+
 
 auth = HttpBasicAuthentication(realm="overmind")
 ad = { 'authentication': auth }

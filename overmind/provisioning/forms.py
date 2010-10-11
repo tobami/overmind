@@ -1,11 +1,11 @@
 from django import forms
-from django.forms import ModelForm
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
-from overmind.provisioning.models import Provider, Node
-from overmind.provisioning.provider_meta import PROVIDERS
 
-class ProviderForm(ModelForm):
+from provisioning.models import Provider, Node
+from provisioning.provider_meta import PROVIDERS
+
+class ProviderForm(forms.ModelForm):
     def __init__(self, provider_type, *args, **kwargs):
         super(ProviderForm, self).__init__(*args, **kwargs)
         self.fields['provider_type'].widget = forms.HiddenInput()
@@ -27,7 +27,7 @@ class ProviderForm(ModelForm):
         fields = ('name', 'provider_type', 'access_key', 'secret_key')
 
 
-class NodeForm(ModelForm):
+class NodeForm(forms.ModelForm):
     provider = forms.ModelChoiceField(
         queryset = Provider.objects.all(),
         widget   = forms.HiddenInput,
@@ -92,7 +92,7 @@ class UserCreationFormExtended(UserCreationForm):
         user.save()
         return user
 
-class BasicEditForm(ModelForm):
+class BasicEditForm(forms.ModelForm):
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
     password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput)
     

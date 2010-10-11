@@ -1,9 +1,10 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
 from libcloud.types import InvalidCredsException
-from overmind.provisioning.provider_meta import PROVIDERS
-from overmind.provisioning.models import Provider, Node, get_state
-from overmind.provisioning.views import save_new_node, save_new_provider
+
+from provisioning.provider_meta import PROVIDERS
+from provisioning.models import Provider, Node, get_state
+from provisioning.views import save_new_node, save_new_provider
 import copy, logging
 
 class ProviderHandler(BaseHandler):

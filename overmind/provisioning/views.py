@@ -3,12 +3,12 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext
-from overmind.provisioning.models import Action, Provider, Node, get_state
-from overmind.provisioning.forms import ProviderForm, NodeForm
-from overmind.provisioning.forms import UserCreationFormExtended, UserEditForm
-from overmind.provisioning.forms import ProfileEditForm
-from overmind.provisioning.provider_meta import PROVIDERS
 from libcloud.types import InvalidCredsException
+
+from provisioning.models import Action, Provider, Node, get_state
+from provisioning.forms import ProviderForm, NodeForm, ProfileEditForm
+from provisioning.forms import UserCreationFormExtended, UserEditForm
+from provisioning.provider_meta import PROVIDERS
 import logging
 
 @login_required
