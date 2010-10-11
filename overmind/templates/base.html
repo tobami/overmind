@@ -20,9 +20,9 @@
         <h1>Overmind</h1>
         <nav>
             <ul>
-                <li><a href="/overview/">Overview</a></li>
-                <li><a href="/provider/">New Provider</a></li>
-                <li><a href="/node/">New Node</a></li>{% if perms.provisioning %}
+                <li><a href="/overview/">Overview</a></li>{% if perms.provisioning %}
+                <li><a href="/provider/">New Provider</a></li>{% endif %}{% if perms.provisioning %}
+                <li><a href="/node/">New Node</a></li>{% endif %}{% if perms.provisioning %}
                 <li><a href="/settings/">Settings</a></li>{% endif %}
             </ul>
         </nav>

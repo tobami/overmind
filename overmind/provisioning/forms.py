@@ -78,6 +78,7 @@ class UserCreationFormExtended(UserCreationForm):
             required = True,
             label='Role',
         )
+        self.fields['password2'].help_text = None
     
     class Meta:
         model = User
@@ -117,8 +118,12 @@ class BasicEditForm(ModelForm):
 
 class UserEditForm(BasicEditForm):
     group = forms.ModelChoiceField(
-        queryset=Group.objects.all(), help_text=None, required=True,
-        initial=2, label='Role')
+        queryset=Group.objects.all(),
+        help_text=None,
+        required=True,
+        initial=2,
+        label='Role',
+    )
     
     def __init__(self, *args, **kwargs):
         super(UserEditForm, self).__init__(*args, **kwargs)
