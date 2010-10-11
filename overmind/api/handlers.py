@@ -6,12 +6,14 @@ from overmind.provisioning.models import Provider, Node, get_state
 from overmind.provisioning.views import save_new_node, save_new_provider
 import copy, logging
 
-
 class ProviderHandler(BaseHandler):
-    fields = ('id', 'name', 'provider_type', 'access_key', 'secret_key')
+    fields = ('id', 'name', 'provider_type', 'access_key')
     model = Provider
     
     def create(self, request):
+        if not request.user.has_perm('provisioning.add_provider'):
+            return rc.FORBIDDEN
+        
         if not hasattr(request, "data"):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
@@ -56,6 +58,8 @@ class ProviderHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
+        if not request.user.has_perm('provisioning.change_provider'):
+            return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
@@ -96,6 +100,19 @@ class ProviderHandler(BaseHandler):
         
         provider.save()
         return provider
+    
+    def delete(self, request, *args, **kwargs):
+        if not request.user.has_perm('provisioning.delete_provider'):
+            return rc.FORBIDDEN
+        id = kwargs.get('id')
+        if id is None:
+            return rc.BAD_REQUEST
+        try:
+            prov = self.model.objects.get(id=id)
+            prov.delete()
+            return rc.DELETED
+        except self.model.DoesNotExist:
+            return rc.NOT_FOUND
 
 
 class NodeHandler(BaseHandler):
@@ -104,6 +121,8 @@ class NodeHandler(BaseHandler):
     model = Node
     
     def create(self, request):
+        if not request.user.has_perm('provisioning.add_node'):
+            return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
@@ -153,6 +172,8 @@ class NodeHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
+        if not request.user.has_perm('provisioning.change_node'):
+            return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
@@ -177,8 +198,9 @@ class NodeHandler(BaseHandler):
         return node
     
     def delete(self, request, *args, **kwargs):
+        if not request.user.has_perm('provisioning.delete_node'):
+            return rc.FORBIDDEN
         id = kwargs.get('id')
-        
         if id is None:
             return rc.BAD_REQUEST
         try:

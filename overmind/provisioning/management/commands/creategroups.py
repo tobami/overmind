@@ -22,8 +22,8 @@ class Command(BaseCommand):
             op = Group(name='Operator')
             op.save()
         
-        for codename in auth_perms:
-            admin.permissions.add(Permission.objects.get(codename=codename))
+        admin.permissions = [
+            Permission.objects.get(codename=codename) for codename in auth_perms]
         
         for codename in provisioning_perms:
             admin.permissions.add(Permission.objects.get(codename=codename))

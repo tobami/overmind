@@ -1,23 +1,55 @@
 from django.test import TestCase
 from django.test.client import Client
+from django.contrib.auth.models import User, Group, Permission
 from provisioning.models import Provider, Node
 import simplejson
+import base64
+
 
 
 class GETProviderTest(TestCase):
     def setUp(self):
+        permissions = [
+            'add_provider', 'change_provider', 'delete_provider',
+            'add_node', 'change_node', 'delete_node',
+        ]
+        op = Group(name='Operator')
+        op.save()
+        for codename in permissions:
+            op.permissions.add(Permission.objects.get(codename=codename))
+            
+        self.user = User.objects.create_user(
+            username='testuser', email='t@t.com', password='test1')
+        self.user.groups.add(op)
+        self.user.save()
+        
         self.path = "/api/providers/"
         self.client = Client()
+        auth = '%s:%s' % (self.user.username, self.user.password)
+        auth = 'Basic %s' % base64.encodestring(auth)
+        auth = auth.strip()
+        self.extra = {
+            'HTTP_AUTHORIZATION': auth,
+        }
+        
         self.p1 = Provider(name="prov1", provider_type="DUMMY", access_key="keyzz")
         self.p1.save()
         self.p2 = Provider(name="prov2", provider_type="DUMMY", access_key="keyzz2")
         self.p2.save()
     
+    def testNotAuthenticated(self):
+        response = self.client.get(self.path)
+        self.assertEquals(response.status_code, 401)
+    
     def test_get_all_providers(self):
         """Get all existing providers"""
-        response = self.client.get(self.path)
-        content = simplejson.loads(response.content)
+        #login = self.client.login(
+            #username=self.user.username, password=self.user.password)
+        #self.assertTrue(login)
+        
+        response = self.client.get(self.path, {}, **self.extra)
         self.assertEquals(response.status_code, 200)
+        content = simplejson.loads(response.content)
         self.assertEquals(len(content), 2)
         self.assertEquals(content[0]['name'], self.p1.name)
         self.assertEquals(content[1]['access_key'], self.p2.access_key)

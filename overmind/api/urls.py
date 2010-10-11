@@ -1,6 +1,11 @@
 from django.conf.urls.defaults import *
 from piston.resource import Resource
+from piston.authentication import HttpBasicAuthentication
+
 from overmind.api.handlers import ProviderHandler, NodeHandler
+
+auth = HttpBasicAuthentication(realm="overmind")
+ad = { 'authentication': auth }
 
 class CsrfExemptResource(Resource):
     '''Django 1.2 CSRF protection can interfere'''
@@ -8,8 +13,8 @@ class CsrfExemptResource(Resource):
         super(CsrfExemptResource, self).__init__(handler, authentication)
         self.csrf_exempt = getattr(self.handler, 'csrf_exempt', True)
 
-provider_resource = CsrfExemptResource(ProviderHandler)
-node_resource = CsrfExemptResource(NodeHandler)
+provider_resource = CsrfExemptResource(ProviderHandler, **ad)
+node_resource = CsrfExemptResource(NodeHandler, **ad)
 
 urlpatterns = patterns('',
     url(r'^providers/$', provider_resource),
