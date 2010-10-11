@@ -107,6 +107,7 @@ class Provider(models.Model):
                     provider  = self,
                     public_ip = node.public_ip[0],
                     state     = get_state(node.state),
+                    creator   = 'imported by overmind',
                 )
                 n.save_extra_data(node.extra)
                 n.save()
@@ -194,6 +195,7 @@ class Node(models.Model):
     production_state  = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
     )
+    creator           = models.CharField(max_length=25)
     timestamp         = models.DateTimeField(auto_now_add=True)
     
     unique_together   = ('provider', 'name', )

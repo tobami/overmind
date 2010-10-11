@@ -33,6 +33,7 @@
     <ul>
         <li>
             <h3>Provider</h3>
+            {% if not provider_list|length %}<p>No providers configured yet{% endif %}
             <ul>{% for provider in provider_list %}
             <li>
                 <input id="provider_{{ provider.id }}" type="radio" name="provider" value="{{ provider.id }}" />

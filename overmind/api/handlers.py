@@ -114,7 +114,7 @@ class NodeHandler(BaseHandler):
         if 'provider_id' in data: del data['provider_id']
         
         # Validate data and save new node
-        error, form, node = save_new_node(data)
+        error, form, node = save_new_node(data, request.user)
         if error is None:
             return node
         else:

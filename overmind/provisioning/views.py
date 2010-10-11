@@ -20,7 +20,8 @@ def overview(request):
         datatable = "<table>"
         fields = [
             ['uuid', n.uuid],
-            ['timestamp', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+            ['created by', n.creator],
+            ['created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
         ]
         for k,v in n.get_extra_data().items():
             fields.append([k,v])
@@ -104,7 +105,7 @@ def save_new_provider(data):
             if newprovider: newprovider.delete()
             # Return form with InvalidCreds error
             error = 'Invalid account credentials'
-        except Exception, e:
+        except Exception, e:#Unexpected error. Log
             error = e
             logging.error(error)
         else:
@@ -140,15 +141,16 @@ def node(request):
 def newnode(request):
     error = None
     if request.method == 'POST':
-        error, form, node = save_new_node(request.POST)
+        error, form, node = save_new_node(request.POST, request.user)
         if error is None: return HttpResponse('<p>success</p>')
     else:
         form = NodeForm(request.GET.get("provider"))
     if error == 'form': error = None
     return render_to_response('node_form.html', { 'form': form, 'error': error })
 
-def save_new_node(data):
+def save_new_node(data, user):
     provider_id = data.get("provider")
+    
     if not provider_id: return 'Incorrect provider id', None, None
     error = None
     form = None
@@ -173,6 +175,7 @@ def save_new_node(data):
                     node.public_ip = data_from_provider['public_ip']
                     node.state     = get_state(data_from_provider['state'])
                     node.save_extra_data(data_from_provider.get('extra', ''))
+                    node.creator   = user.username
                     node.save()
                     logging.info('New node created %s' % node)
                     return None, form, node
