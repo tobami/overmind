@@ -13,6 +13,7 @@
         }
         
         $(function() {
+            $('#nav_settings').addClass('selected');
             {% if perms.auth %}
             $('table.listing tbody tr').each(function() {
                 $(this).css('cursor', 'pointer');

@@ -17,6 +17,7 @@
         }
         
         $(function() {
+            $('#nav_overview').addClass('selected');
             {% for row in nodes %}attach_tooltip("n_{{ row.node.provider.id }}_{{ row.node.id }}");
             {% endfor %}
         });

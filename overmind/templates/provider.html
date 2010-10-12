@@ -9,6 +9,7 @@
         
         $(function() {
             $('#loading').hide();
+            $('#nav_newprovider').addClass('selected');
             $("input:radio[name='provider_type']").change(getProviderForm);
             
             $('form#newprovider').submit(function() {

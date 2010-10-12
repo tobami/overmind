@@ -45,6 +45,5 @@ class Command(BaseCommand):
         
         verbosity = int(options.get('verbosity', 1))
         if verbosity >= 1:
-            self.stdout.write("Superuser created successfully.\n")
-        print('Successfully loaded permission groups')
+            print('Successfully loaded permission groups')
 

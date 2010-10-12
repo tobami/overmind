@@ -20,10 +20,10 @@
         <h1>Overmind</h1>
         <nav>
             <ul>
-                <li><a href="/overview/">Overview</a></li>{% if perms.provisioning %}
-                <li><a href="/provider/">New Provider</a></li>{% endif %}{% if perms.provisioning %}
-                <li><a href="/node/">New Node</a></li>{% endif %}{% if perms.provisioning %}
-                <li><a href="/settings/">Settings</a></li>{% endif %}
+                <li id="nav_overview"><a href="/overview/">Overview</a></li>{% if perms.provisioning %}
+                <li id="nav_newprovider"><a href="/provider/">New Provider</a></li>{% endif %}{% if perms.provisioning %}
+                <li id="nav_newnode"><a href="/node/">New Node</a></li>{% endif %}{% if perms.provisioning %}
+                <li id="nav_settings"><a href="/settings/">Settings</a></li>{% endif %}
             </ul>
         </nav>
         {% if user.is_authenticated %}<p>{{ user.username }} | <a href="/accounts/logout/?next=/overview">Logout</a></p>{% endif %}

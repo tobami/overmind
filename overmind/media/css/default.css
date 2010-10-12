@@ -52,8 +52,10 @@ header nav { display: table-cell; }
     }
 
 header p { color: #AAA; position: absolute; top: 0; margin-top: 2px; }
-header p a { text-decoration: none; }
+header p a { color: #AAA; }
 header p a:visited { color: #AAA; }
+header p a:hover { color: #fff; }
+
 #content {
     display: table;
     margin-top: 43px;

@@ -238,7 +238,7 @@ def edituser(request, id):
     if request.method == 'POST':
         if user_is_admin:
             group = request.POST.get('group')
-            if group != 1 and count_admin_users() <= 1:
+            if group != "1" and count_admin_users() <= 1:
                 #if id of group is not Admin and there is only one admin user
                 return HttpResponse(
                     "<p>Not allowed: you cannot remove admin rights from the only admin user</p>")

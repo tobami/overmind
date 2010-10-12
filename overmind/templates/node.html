@@ -16,6 +16,7 @@
         
         $(function() {
             $('#loading').hide();
+            $('#nav_newnode').addClass('selected');
             $("input:radio[name='provider']").change(getNodeForm);
             
             $('form#newnode').submit(function() {
