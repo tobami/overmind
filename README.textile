@@ -1,6 +1,8 @@
 h1. Overmind
 
-The first verion is a *unified front-end* to public and private clouds, and dedicated hardware.
+This project aims to provider a complete server provisioning and configuration management application.
+
+The first version is a *unified front-end* to public and private clouds, custom server providers and dedicated hardware.
 
 h2. Features
 
@@ -10,7 +12,7 @@ h2. Features
 * Complete REST API for provider and nodes
 * Authentication with three user roles
 
-See the Roadmap wiki page for info about the future direction of the project
+See the wiki for architectural info and to know more about the future direction of the project.
 
 h2. Requirements
 

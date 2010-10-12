@@ -8,6 +8,7 @@ provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
 PROVIDER_CHOICES = ([(key, key) for key in provider_meta_keys])
 
+# libcloud states mapping
 STATES = {
     0: 'Running',
     1: 'Rebooting',
@@ -54,6 +55,7 @@ class Provider(models.Model):
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
             self._meta.get_field('access_key').blank = False
+        # Read optional extra_param
         if 'extra_param' in PROVIDERS[self.provider_type].keys():
             self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
             self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
@@ -62,7 +64,7 @@ class Provider(models.Model):
         self.create_connection()
         # If connection was succesful save provider
         super(Provider, self).save(*args, **kwargs)
-        logging.debug('provider "%s" saved' % self.name)
+        logging.debug('Provider "%s" saved' % self.name)
 
         # Add supported actions
         for action_name in PROVIDERS[self.provider_type]['supported_actions']:
