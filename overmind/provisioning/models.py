@@ -103,6 +103,7 @@ class Provider(models.Model):
                 n.public_ip = node.public_ip[0]
                 n.state     = get_state(node.state)
                 n.environment = 'Production'
+                n.save_extra_data(node.extra)
                 n.save()
             except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
