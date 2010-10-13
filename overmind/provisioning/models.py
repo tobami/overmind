@@ -45,6 +45,9 @@ class Provider(models.Model):
     actions = models.ManyToManyField(Action)
     conn    = None
     
+    class Meta:
+        unique_together = ('provider_type', 'access_key')
+    
     def save(self, *args, **kwargs):
         # Define proper key field names
         if PROVIDERS[self.provider_type]['access_key'] is not None:
@@ -183,25 +186,25 @@ class Node(models.Model):
         (u'DE', u'Decommisioned'),
     )
     # Standard node fields
-    name              = models.CharField(max_length=25)
-    uuid              = models.CharField(max_length=50)
-    provider          = models.ForeignKey(Provider)
-    state             = models.CharField(
+    name             = models.CharField(max_length=25)
+    uuid             = models.CharField(max_length=50)
+    provider         = models.ForeignKey(Provider)
+    state            = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
-    public_ip         = models.CharField(max_length=25)
-    internal_ip       = models.CharField(max_length=25, blank=True)
-    hostname          = models.CharField(max_length=25, blank=True)
-    extra_data        = models.TextField(blank=True)
+    public_ip        = models.CharField(max_length=25)
+    internal_ip      = models.CharField(max_length=25, blank=True)
+    hostname         = models.CharField(max_length=25, blank=True)
+    extra_data       = models.TextField(blank=True)
     # Overmind related fields
-    production_state  = models.CharField(
+    production_state = models.CharField(
         default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
     )
-    creator           = models.CharField(max_length=25)
-    timestamp         = models.DateTimeField(auto_now_add=True)
+    creator          = models.CharField(max_length=25)
+    timestamp        = models.DateTimeField(auto_now_add=True)
     
-    unique_together   = ('provider', 'name', )
-    unique_together   = ('provider', 'uuid')
+    class Meta:
+        unique_together  = (('provider', 'name'), ('provider', 'uuid'))
     
     def __unicode__(self):
         return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.uuid + ">"
