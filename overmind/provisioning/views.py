@@ -16,14 +16,14 @@ def overview(request):
     provider_list = Provider.objects.all()
     nodes = []
     #TODO: Optimize for hundreds of nodes
-    for n in Node.objects.exclude(production_state='DE'):
+    for n in Node.objects.exclude(environment='Decommissioned'):
         datatable = "<table>"
         fields = [
             ['uuid', n.uuid],
             ['created by', n.creator],
             ['created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
         ]
-        for k,v in n.get_extra_data().items():
+        for k,v in n.extra_data().items():
             fields.append([k,v])
         
         for field in fields:

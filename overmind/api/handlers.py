@@ -118,7 +118,7 @@ class ProviderHandler(BaseHandler):
 
 class NodeHandler(BaseHandler):
     fields = ('id', 'name', ('provider', ('id', 'name', 'provider_type')),
-        'uuid', 'public_ip', 'state', 'production_state')
+        'uuid', 'public_ip', 'state', 'environment', 'extra_data')
     model = Node
     
     def create(self, request):
@@ -153,20 +153,23 @@ class NodeHandler(BaseHandler):
         id = kwargs.get('id')
         
         if id is None:
-            provider_id = request.GET.get('provider_id')
+            # If name specified, return node
             name = request.GET.get('name')
-            if provider_id is not None:
-                return self.model.objects.filter(
-                    provider=provider_id,
-                )
-            elif name is not None:
+            if name is not None:
                 try:
                     return self.model.objects.get(name=name)
                 except self.model.DoesNotExist:
                     return rc.NOT_FOUND
-            else:
-                return self.model.objects.all()
+            # Else return a subset of nodes
+            query = self.model.objects.all()
+            provider_id = request.GET.get('provider_id')
+            if provider_id is not None:
+                query = query.filter(provider=provider_id)
+            if request.GET.get('show_decommissioned') != 'true':
+                query = query.exclude(environment='Decommissioned')
+            return query
         else:
+            # Return the selected node
             try:
                 return self.model.objects.get(id=id)
             except self.model.DoesNotExist:
@@ -208,7 +211,7 @@ class NodeHandler(BaseHandler):
             node = self.model.objects.get(id=id)
             if not node.provider.supports('destroy'):
                 return rc.NOT_IMPLEMENTED
-            if node.production_state == 'DE':
+            if node.environment == 'Decommissioned':
                 return rc.NOT_HERE
             node.destroy()
             return rc.DELETED

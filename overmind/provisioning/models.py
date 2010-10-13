@@ -96,13 +96,13 @@ class Provider(models.Model):
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
                 # If previously deleted (decommissioned), reimport
-                if n.production_state == 'DE':
+                if n.environment == 'Decommissioned':
                     n.delete()
                     raise Node.DoesNotExist
                 # Don't import already existing node, update instead
                 n.public_ip = node.public_ip[0]
                 n.state     = get_state(node.state)
-                n.production_state = 'PR'
+                n.environment = 'Production'
                 n.save()
             except Node.DoesNotExist:
                 logging.debug("import_nodes(): adding %s ..." % node)
@@ -129,7 +129,8 @@ class Provider(models.Model):
             # This node was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                n.delete()
+                n.environment = 'Decommissioned'
+                n.save()
                 logging.info("import_nodes(): Deleted node %s" % n)
         logging.debug("Finished synching")
     
@@ -179,11 +180,11 @@ class Node(models.Model):
         (u'Stranded', u'Stranded'),
         (u'Unknown', u'Unknown'),
     )
-    PRODUCTION_STATE_CHOICES = (
-        (u'PR', u'Production'),
-        (u'ST', u'Stage'),
-        (u'TE', u'Test'),
-        (u'DE', u'Decommisioned'),
+    ENVIRONMENT_CHOICES = (
+        (u'Production', u'Production'),
+        (u'Stage', u'Stage'),
+        (u'Test', u'Test'),
+        (u'Decommissioned', u'Decommissioned'),
     )
     # Standard node fields
     name             = models.CharField(max_length=25)
@@ -195,10 +196,10 @@ class Node(models.Model):
     public_ip        = models.CharField(max_length=25)
     internal_ip      = models.CharField(max_length=25, blank=True)
     hostname         = models.CharField(max_length=25, blank=True)
-    extra_data       = models.TextField(blank=True)
+    _extra_data       = models.TextField(blank=True)
     # Overmind related fields
-    production_state = models.CharField(
-        default='PR', max_length=2, choices=PRODUCTION_STATE_CHOICES
+    environment = models.CharField(
+        default='Production', max_length=2, choices=ENVIRONMENT_CHOICES
     )
     creator          = models.CharField(max_length=25)
     timestamp        = models.DateTimeField(auto_now_add=True)
@@ -210,11 +211,11 @@ class Node(models.Model):
         return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.uuid + ">"
     
     def save_extra_data(self, data):
-        self.extra_data = json.dumps(data)
+        self._extra_data = json.dumps(data)
     
-    def get_extra_data(self):
-        if self.extra_data == '': return {}
-        return json.loads(self.extra_data)
+    def extra_data(self):
+        if self._extra_data == '': return {}
+        return json.loads(self._extra_data)
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
@@ -229,7 +230,7 @@ class Node(models.Model):
             else:
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
-        self.production_state = 'DE'
+        self.environment = 'Decommissioned'
         self.save()
         
         return True
