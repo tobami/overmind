@@ -95,14 +95,9 @@ class Provider(models.Model):
         for node in nodes:
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
-                # If previously deleted (decommissioned), reimport
-                if n.environment == 'Decommissioned':
-                    n.delete()
-                    raise Node.DoesNotExist
                 # Don't import already existing node, update instead
                 n.public_ip = node.public_ip[0]
                 n.state     = get_state(node.state)
-                n.environment = 'Production'
                 n.save_extra_data(node.extra)
                 n.save()
             except Node.DoesNotExist:
@@ -119,20 +114,20 @@ class Provider(models.Model):
                 n.save()
                 logging.info("import_nodes(): succesfully added %s" % node.name)
         
-        # Update state and delete nodes in the DB not listed by the provider
-        for n in Node.objects.filter(provider=self):
+        # Delete nodes in the DB not listed by the provider
+        for n in Node.objects.filter(provider=self
+            ).exclude(environment='Decommissioned'):
             found = False
             for node in nodes:
                 if n.uuid == node.uuid:
-                    n.state = get_state(node.state)
                     found = True
                     break
             # This node was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                n.environment = 'Decommissioned'
-                n.save()
-                logging.info("import_nodes(): Deleted node %s" % n)
+                n.state = 'Terminated'
+                logging.info("import_nodes(): Delete node %s" % n)
+                n.decommission()
         logging.debug("Finished synching")
     
     def update(self):
@@ -188,22 +183,22 @@ class Node(models.Model):
         (u'Decommissioned', u'Decommissioned'),
     )
     # Standard node fields
-    name             = models.CharField(max_length=25)
-    uuid             = models.CharField(max_length=50)
-    provider         = models.ForeignKey(Provider)
-    state            = models.CharField(
+    name        = models.CharField(max_length=25)
+    uuid        = models.CharField(max_length=50)
+    provider    = models.ForeignKey(Provider)
+    state       = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
-    public_ip        = models.CharField(max_length=25)
-    internal_ip      = models.CharField(max_length=25, blank=True)
-    hostname         = models.CharField(max_length=25, blank=True)
-    _extra_data       = models.TextField(blank=True)
+    public_ip   = models.CharField(max_length=25)
+    internal_ip = models.CharField(max_length=25, blank=True)
+    hostname    = models.CharField(max_length=25, blank=True)
+    _extra_data = models.TextField(blank=True)
     # Overmind related fields
     environment = models.CharField(
         default='Production', max_length=2, choices=ENVIRONMENT_CHOICES
     )
-    creator          = models.CharField(max_length=25)
-    timestamp        = models.DateTimeField(auto_now_add=True)
+    creator     = models.CharField(max_length=25)
+    timestamp   = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together  = (('provider', 'name'), ('provider', 'uuid'))
@@ -231,7 +226,23 @@ class Node(models.Model):
             else:
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
+        self.state = 'Terminated'
+        self.decommission()
+        return True
+    
+    def decommission(self):
+        # Rename node to free the name for future use
+        counter = 1
+        newname = "DECOM" + str(counter) + "-" + self.name
+        while(
+            Node.objects.filter(
+                provider=self.provider,name=newname
+            ).exclude(
+                id=self.id
+            )):
+            counter += 1
+            newname = "DECOM" + str(counter) + "-" + self.name
+        self.name = newname
+        # Mark decommissioned and save
         self.environment = 'Decommissioned'
         self.save()
-        
-        return True

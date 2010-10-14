@@ -176,9 +176,13 @@ def save_new_node(data, user):
                     node.state     = get_state(data_from_provider['state'])
                     node.save_extra_data(data_from_provider.get('extra', ''))
                     node.creator   = user.username
-                    node.save()
-                    logging.info('New node created %s' % node)
-                    return None, form, node
+                    try:
+                        node.save()
+                        logging.info('New node created %s' % node)
+                        return None, form, node
+                    except Exception, e:
+                        error = e
+                        logging.error('Could not create node: %s' % e)
         else:
             error = 'form'
     return error, form, None

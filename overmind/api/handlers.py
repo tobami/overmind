@@ -209,11 +209,12 @@ class NodeHandler(BaseHandler):
             return rc.BAD_REQUEST
         try:
             node = self.model.objects.get(id=id)
-            if not node.provider.supports('destroy'):
-                return rc.NOT_IMPLEMENTED
             if node.environment == 'Decommissioned':
                 return rc.NOT_HERE
-            node.destroy()
+            if node.provider.supports('destroy'):
+                node.destroy()
+            else:
+                node.decommission()
             return rc.DELETED
         except self.model.DoesNotExist:
             return rc.NOT_FOUND
