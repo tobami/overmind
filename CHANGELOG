@@ -3,5 +3,10 @@ Overmind Change Log
 ===================
 
 
-Version 0.x.x, month day, year
+Version 0.1.0, October 14, 2010
 --------------------------------
+
+* EC2 and Rackspace server provisioning
+* Provider Plugins: “Dedicated Hardware” and "Hetzner"
+* REST API for provider and nodes
+* Authentication with three user roles
