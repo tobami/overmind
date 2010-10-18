@@ -12,6 +12,7 @@ LIBCLOUD_PROVIDERS = {
         'display_name': 'EC2 US West',
         'access_key': 'AWS Access Key ID',
         'secret_key': 'AWS Secret Key',
+        # ex_keyname is needed for EC2 to have our ssh key deployed to nodes
         'extra_param': ['ex_keyname', settings.PUBLIC_KEY_FILE.split(".")[0]],
     },
     'EC2_US_EAST': {

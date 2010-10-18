@@ -41,7 +41,7 @@ class Driver(NodeDriver):
     def create_node(self, **kwargs):
         # Validate IP address
         ip = kwargs.get('ip', '')
-        valid = self._validate_ip(ip)
+        self._validate_ip(ip)
         
         # Return Node object (IP serves as uuid feed)
         n = Node(id=ip.replace(".",""),
