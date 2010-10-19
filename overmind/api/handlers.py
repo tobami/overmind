@@ -7,12 +7,17 @@ from provisioning.models import Provider, Node, get_state
 from provisioning.views import save_new_node, save_new_provider
 import copy, logging
 
+# Unit tests are not working for HttpBasicAuthentication
+# This is a hack until authentication is reimplemented as OAuth
+# (waiting for a new piston version)
+_TESTING = False
+
 class ProviderHandler(BaseHandler):
     fields = ('id', 'name', 'provider_type', 'access_key')
     model = Provider
     
     def create(self, request):
-        if not request.user.has_perm('provisioning.add_provider'):
+        if not _TESTING and not request.user.has_perm('provisioning.add_provider'):
             return rc.FORBIDDEN
         
         if not hasattr(request, "data"):
@@ -59,7 +64,7 @@ class ProviderHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
-        if not request.user.has_perm('provisioning.change_provider'):
+        if not _TESTING and not request.user.has_perm('provisioning.change_provider'):
             return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
@@ -103,7 +108,7 @@ class ProviderHandler(BaseHandler):
         return provider
     
     def delete(self, request, *args, **kwargs):
-        if not request.user.has_perm('provisioning.delete_provider'):
+        if not _TESTING and not request.user.has_perm('provisioning.delete_provider'):
             return rc.FORBIDDEN
         id = kwargs.get('id')
         if id is None:
@@ -122,7 +127,7 @@ class NodeHandler(BaseHandler):
     model = Node
     
     def create(self, request):
-        if not request.user.has_perm('provisioning.add_node'):
+        if not _TESTING and not request.user.has_perm('provisioning.add_node'):
             return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
@@ -176,7 +181,7 @@ class NodeHandler(BaseHandler):
                 return rc.NOT_FOUND
     
     def update(self, request, *args, **kwargs):
-        if not request.user.has_perm('provisioning.change_node'):
+        if not _TESTING and not request.user.has_perm('provisioning.change_node'):
             return rc.FORBIDDEN
         if not hasattr(request, "data"):
             request.data = request.POST
@@ -202,7 +207,7 @@ class NodeHandler(BaseHandler):
         return node
     
     def delete(self, request, *args, **kwargs):
-        if not request.user.has_perm('provisioning.delete_node'):
+        if not _TESTING and not request.user.has_perm('provisioning.delete_node'):
             return rc.FORBIDDEN
         id = kwargs.get('id')
         if id is None:
