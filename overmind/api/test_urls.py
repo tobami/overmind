@@ -1,10 +1,11 @@
 from django.conf.urls.defaults import *
 from piston.resource import Resource
 from piston.authentication import HttpBasicAuthentication
-
+import api
 from api.handlers import ProviderHandler, NodeHandler
 
 # The test url creates resources that do not require authentication
+api.handlers._TESTING = True
 
 class CsrfExemptResource(Resource):
     '''Django 1.2 CSRF protection can interfere'''

@@ -10,6 +10,7 @@ import copy, logging
 # Unit tests are not working for HttpBasicAuthentication
 # This is a hack until authentication is reimplemented as OAuth
 # (waiting for a new piston version)
+# Do not set this variable True outside unit testing!
 _TESTING = False
 
 class ProviderHandler(BaseHandler):
