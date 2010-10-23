@@ -3,8 +3,6 @@ from django.test.client import Client
 from django.contrib.auth.models import User, Group, Permission
 from provisioning.models import Provider, Node
 import simplejson as json
-import base64
-
 
 
 class GETProviderTest(TestCase):
@@ -39,23 +37,27 @@ class GETProviderTest(TestCase):
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 200)
         content = json.loads(response.content)
-        self.assertEquals(len(content), 2)
-        self.assertEquals(content[0]['name'], self.p1.name)
-        self.assertEquals(content[0]['access_key'], self.p1.access_key)
-        self.assertEquals(content[1]['name'], self.p2.name)
-        self.assertEquals(content[1]['access_key'], self.p2.access_key)
+        expected = [
+            {'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name},
+            {'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
     
     def test_get_providers_by_type(self):
         '''Get all providers of a particular type'''
         response = self.client.get(self.path + "?provider_type=DUMMY")
         content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
-        self.assertEquals(len(content), 2)
-        self.assertEquals(content[0]['name'], self.p1.name)
-        self.assertEquals(content[0]['access_key'], self.p1.access_key)
-        self.assertEquals(content[1]['name'], self.p2.name)
-        self.assertEquals(content[1]['access_key'], self.p2.access_key)
-
+        expected = [
+            {'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name},
+            {'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
+    
     def test_get_providers_by_type_not_found(self):
         '''Get providers by wrong type'''
         response = self.client.get(self.path + "?provider_type=DUMMIEST")
@@ -67,9 +69,8 @@ class GETProviderTest(TestCase):
         response = self.client.get(self.path + "2")
         self.assertEquals(response.status_code, 200)
         expected = {
-            'access_key': self.p2.access_key,
-            'provider_type': self.p2.provider_type,
-            'id': self.p2.id, 'name': self.p2.name
+            'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name,
         }
         self.assertEquals(json.loads(response.content), expected)
     
@@ -83,9 +84,8 @@ class GETProviderTest(TestCase):
         response = self.client.get(self.path + "?name=prov1")
         self.assertEquals(response.status_code, 200)
         expected = {
-            'access_key': self.p1.access_key,
-            'provider_type': self.p1.provider_type,
-            'id': self.p1.id, 'name': self.p1.name
+            'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name
         }
         self.assertEquals(json.loads(response.content), expected)
     
@@ -93,6 +93,7 @@ class GETProviderTest(TestCase):
         '''Get a provider by wrong name'''
         response = self.client.get(self.path + "?name=prov1nothere")
         self.assertEquals(response.status_code, 404)
+
 
 class POSTProviderTest(TestCase):
     urls = 'overmind.test_urls'
@@ -134,5 +135,6 @@ class POSTProviderTest(TestCase):
             self.path, json.dumps(data), content_type='application/json')
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, expected)
+        
         # Make sure it wasn't saved in the DB
         self.assertEquals(len(Provider.objects.all()), 0)
