@@ -56,8 +56,8 @@ class GETProviderTest(TestCase):
         self.assertEquals(content[1]['name'], self.p2.name)
         self.assertEquals(content[1]['access_key'], self.p2.access_key)
 
-    def test_get_provider_by_type_not_found(self):
-        '''Get a provider by wrong type'''
+    def test_get_providers_by_type_not_found(self):
+        '''Get providers by wrong type'''
         response = self.client.get(self.path + "?provider_type=DUMMIEST")
         self.assertEquals(json.loads(response.content), [])
         self.assertEquals(response.status_code, 200)
@@ -89,6 +89,10 @@ class GETProviderTest(TestCase):
         }
         self.assertEquals(json.loads(response.content), expected)
     
+    def test_get_provider_by_name_not_found(self):
+        '''Get a provider by wrong name'''
+        response = self.client.get(self.path + "?name=prov1nothere")
+        self.assertEquals(response.status_code, 404)
 
 class POSTProviderTest(TestCase):
     urls = 'overmind.test_urls'
