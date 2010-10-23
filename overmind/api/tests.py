@@ -41,12 +41,26 @@ class GETProviderTest(TestCase):
         content = json.loads(response.content)
         self.assertEquals(len(content), 2)
         self.assertEquals(content[0]['name'], self.p1.name)
+        self.assertEquals(content[0]['access_key'], self.p1.access_key)
+        self.assertEquals(content[1]['name'], self.p2.name)
         self.assertEquals(content[1]['access_key'], self.p2.access_key)
     
     def test_get_providers_by_type(self):
         '''Get all providers of a particular type'''
-        #TODO: implement me!
-        pass
+        response = self.client.get(self.path + "?provider_type=DUMMY")
+        content = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        self.assertEquals(len(content), 2)
+        self.assertEquals(content[0]['name'], self.p1.name)
+        self.assertEquals(content[0]['access_key'], self.p1.access_key)
+        self.assertEquals(content[1]['name'], self.p2.name)
+        self.assertEquals(content[1]['access_key'], self.p2.access_key)
+
+    def test_get_provider_by_type_not_found(self):
+        '''Get a provider by wrong type'''
+        response = self.client.get(self.path + "?provider_type=DUMMIEST")
+        self.assertEquals(json.loads(response.content), [])
+        self.assertEquals(response.status_code, 200)
 
     def test_get_provider_by_id(self):
         '''Get a provider by id'''
@@ -59,16 +73,22 @@ class GETProviderTest(TestCase):
         }
         self.assertEquals(json.loads(response.content), expected)
     
-    def test_get_provider_by_name(self):
-        '''Get a provider by name'''
-        #TODO: implement me!
-        pass
-    
     def test_get_provider_by_id_not_found(self):
         '''Get a provider by wrong id'''
         response = self.client.get(self.path + '3')
         self.assertEquals(response.status_code, 404)
 
+    def test_get_provider_by_name(self):
+        '''Get a provider by name'''
+        response = self.client.get(self.path + "?name=prov1")
+        self.assertEquals(response.status_code, 200)
+        expected = {
+            'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type,
+            'id': self.p1.id, 'name': self.p1.name
+        }
+        self.assertEquals(json.loads(response.content), expected)
+    
 
 class POSTProviderTest(TestCase):
     urls = 'overmind.test_urls'
