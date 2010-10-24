@@ -22,6 +22,8 @@ class GETProviderTest(TestCase):
         self.p1.save()
         self.p2 = Provider(name="prov2", provider_type="DUMMY", access_key="keyzz2")
         self.p2.save()
+        self.p3 = Provider(name="prov3", provider_type="dedicated")
+        self.p3.save()
     
     def test_not_authenticated(self):
         '''A non authenticated user should get 401'''
@@ -42,11 +44,13 @@ class GETProviderTest(TestCase):
             'provider_type': self.p1.provider_type, 'name': self.p1.name},
             {'id': self.p2.id, 'access_key': self.p2.access_key,
             'provider_type': self.p2.provider_type, 'name': self.p2.name},
+            {'id': self.p3.id, 'access_key': self.p3.access_key,
+            'provider_type': self.p3.provider_type, 'name': self.p3.name},
         ]
         self.assertEquals(json.loads(response.content), expected)
     
-    def test_get_providers_by_type(self):
-        '''Get all providers of a particular type'''
+    def test_get_providers_by_type_dummy(self):
+        '''Get all providers of type DUMMY'''
         response = self.client.get(self.path + "?provider_type=DUMMY")
         content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
@@ -57,12 +61,24 @@ class GETProviderTest(TestCase):
             'provider_type': self.p2.provider_type, 'name': self.p2.name},
         ]
         self.assertEquals(json.loads(response.content), expected)
+
+    def test_get_providers_by_type_dedicated(self):
+        '''Get all providers of type dedicated'''
+        response = self.client.get(self.path + "?provider_type=dedicated")
+        content = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        expected = [
+            {'id': self.p3.id, 'access_key': self.p3.access_key,
+            'provider_type': self.p3.provider_type, 'name': self.p3.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
     
     def test_get_providers_by_type_not_found(self):
-        '''Get providers by wrong type'''
+        '''Get providers for non-existent type'''
         response = self.client.get(self.path + "?provider_type=DUMMIEST")
-        self.assertEquals(json.loads(response.content), [])
         self.assertEquals(response.status_code, 200)
+        expected = []
+        self.assertEquals(json.loads(response.content), expected)
 
     def test_get_provider_by_id(self):
         '''Get a provider by id'''
@@ -76,7 +92,7 @@ class GETProviderTest(TestCase):
     
     def test_get_provider_by_id_not_found(self):
         '''Get a provider by wrong id'''
-        response = self.client.get(self.path + '3')
+        response = self.client.get(self.path + '99999')
         self.assertEquals(response.status_code, 404)
 
     def test_get_provider_by_name(self):
