@@ -157,8 +157,8 @@ class POSTProviderTest(TestCase):
 
     def test_delete_provider(self):
         """Delete a provider"""
-        initial_provider_count = len(Provider.objects.all())
         # first let's create a provider
+        initial_provider_count = len(Provider.objects.all())
         data = {
             'name': 'A brand new provider',
             'provider_type': 'DUMMY',
@@ -171,8 +171,44 @@ class POSTProviderTest(TestCase):
         # check that it was added to the DB
         self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
 
+        # now delete the newly added provider
         id = new_data["id"]
         resp = self.client.delete(self.path + str(id))
         self.assertEquals(resp.status_code, 204)
         # check that it was also deleted from the DB
         self.assertEquals(len(Provider.objects.all()), initial_provider_count)
+
+    def test_update_provider_name(self):
+        """Update the name for a provider"""
+        # first let's create a provider
+        initial_provider_count = len(Provider.objects.all())
+        data = {
+            'name': 'A provider to be updated',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey2',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        new_data = json.loads(resp_new.content)
+        # check that it was added to the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
+
+        # now update the newly added provider
+        id = new_data["id"]
+        new_name = "ThisNameIsMuchBetter"
+        data_updated = {
+            'name': new_name
+        }
+        resp = self.client.put(
+            self.path + str(id), json.dumps(data_updated), content_type='application/json')
+        self.assertEquals(resp.status_code, 200)
+
+        data["name"] = new_name
+        data["id"] = id
+        expected = data
+        self.assertEquals(json.loads(resp.content), expected)
+
+        #Check that it was also updated in the DB
+        p = Provider.objects.get(id=id)
+        self.assertEquals(p.name, new_name)
