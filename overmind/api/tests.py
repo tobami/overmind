@@ -154,3 +154,25 @@ class POSTProviderTest(TestCase):
         
         # Make sure it wasn't saved in the DB
         self.assertEquals(len(Provider.objects.all()), 0)
+
+    def test_delete_provider(self):
+        """Delete a provider"""
+        initial_provider_count = len(Provider.objects.all())
+        # first let's create a provider
+        data = {
+            'name': 'A brand new provider',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        new_data = json.loads(resp_new.content)
+        # check that it was added to the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
+
+        id = new_data["id"]
+        resp = self.client.delete(self.path + str(id))
+        self.assertEquals(resp.status_code, 204)
+        # check that it was also deleted from the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count)
