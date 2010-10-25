@@ -5,7 +5,7 @@ from provisioning.models import Provider, Node
 import simplejson as json
 
 
-class GETProviderTest(TestCase):
+class ReadProviderTest(TestCase):
     urls = 'overmind.test_urls'
     
     def setUp(self):
@@ -31,7 +31,7 @@ class GETProviderTest(TestCase):
         self.assertEquals(response.status_code, 401)
     
     def test_get_all_providers(self):
-        """Get all existing providers"""
+        '''Should show all existing providers'''
         #login = self.client.login(
             #username=self.user.username, password=self.user.password)
         #self.assertTrue(login)
@@ -50,7 +50,7 @@ class GETProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_providers_by_type_dummy(self):
-        '''Get all providers of type DUMMY'''
+        '''Should show all providers of type DUMMY'''
         response = self.client.get(self.path + "?provider_type=DUMMY")
         content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
@@ -63,7 +63,7 @@ class GETProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
 
     def test_get_providers_by_type_dedicated(self):
-        '''Get all providers of type dedicated'''
+        '''Should show all providers of type dedicated'''
         response = self.client.get(self.path + "?provider_type=dedicated")
         content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
@@ -74,14 +74,14 @@ class GETProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_providers_by_type_not_found(self):
-        '''Get providers for non-existent type'''
+        '''Should show providers for non-existent type'''
         response = self.client.get(self.path + "?provider_type=DUMMIEST")
         self.assertEquals(response.status_code, 200)
         expected = []
         self.assertEquals(json.loads(response.content), expected)
 
     def test_get_provider_by_id(self):
-        '''Get a provider by id'''
+        '''Should show provider with id=2'''
         response = self.client.get(self.path + "2")
         self.assertEquals(response.status_code, 200)
         expected = {
@@ -91,12 +91,12 @@ class GETProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_provider_by_id_not_found(self):
-        '''Get a provider by wrong id'''
+        '''Should return NOT_FOUND because we requested a provider with non existing id'''
         response = self.client.get(self.path + '99999')
         self.assertEquals(response.status_code, 404)
 
     def test_get_provider_by_name(self):
-        '''Get a provider by name'''
+        '''Should show provider with name "prov1"'''
         response = self.client.get(self.path + "?name=prov1")
         self.assertEquals(response.status_code, 200)
         expected = {
@@ -106,12 +106,12 @@ class GETProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_provider_by_name_not_found(self):
-        '''Get a provider by wrong name'''
+        '''Should return NOT_FOUND because we requested a provider with a non existing name'''
         response = self.client.get(self.path + "?name=prov1nothere")
         self.assertEquals(response.status_code, 404)
 
 
-class POSTProviderTest(TestCase):
+class CreateProviderTest(TestCase):
     urls = 'overmind.test_urls'
     
     def setUp(self):
