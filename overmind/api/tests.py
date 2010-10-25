@@ -3,8 +3,6 @@ from django.test.client import Client
 from django.contrib.auth.models import User, Group, Permission
 from provisioning.models import Provider, Node
 import simplejson as json
-import base64
-
 
 
 class GETProviderTest(TestCase):
@@ -24,6 +22,8 @@ class GETProviderTest(TestCase):
         self.p1.save()
         self.p2 = Provider(name="prov2", provider_type="DUMMY", access_key="keyzz2")
         self.p2.save()
+        self.p3 = Provider(name="prov3", provider_type="dedicated")
+        self.p3.save()
     
     def test_not_authenticated(self):
         '''A non authenticated user should get 401'''
@@ -39,34 +39,75 @@ class GETProviderTest(TestCase):
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 200)
         content = json.loads(response.content)
-        self.assertEquals(len(content), 2)
-        self.assertEquals(content[0]['name'], self.p1.name)
-        self.assertEquals(content[1]['access_key'], self.p2.access_key)
+        expected = [
+            {'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name},
+            {'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name},
+            {'id': self.p3.id, 'access_key': self.p3.access_key,
+            'provider_type': self.p3.provider_type, 'name': self.p3.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
     
-    def test_get_providers_by_type(self):
-        '''Get all providers of a particular type'''
-        #TODO: implement me!
-        pass
+    def test_get_providers_by_type_dummy(self):
+        '''Get all providers of type DUMMY'''
+        response = self.client.get(self.path + "?provider_type=DUMMY")
+        content = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        expected = [
+            {'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name},
+            {'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
+
+    def test_get_providers_by_type_dedicated(self):
+        '''Get all providers of type dedicated'''
+        response = self.client.get(self.path + "?provider_type=dedicated")
+        content = json.loads(response.content)
+        self.assertEquals(response.status_code, 200)
+        expected = [
+            {'id': self.p3.id, 'access_key': self.p3.access_key,
+            'provider_type': self.p3.provider_type, 'name': self.p3.name},
+        ]
+        self.assertEquals(json.loads(response.content), expected)
+    
+    def test_get_providers_by_type_not_found(self):
+        '''Get providers for non-existent type'''
+        response = self.client.get(self.path + "?provider_type=DUMMIEST")
+        self.assertEquals(response.status_code, 200)
+        expected = []
+        self.assertEquals(json.loads(response.content), expected)
 
     def test_get_provider_by_id(self):
         '''Get a provider by id'''
         response = self.client.get(self.path + "2")
         self.assertEquals(response.status_code, 200)
         expected = {
-            'access_key': self.p2.access_key,
-            'provider_type': self.p2.provider_type,
-            'id': self.p2.id, 'name': self.p2.name
+            'id': self.p2.id, 'access_key': self.p2.access_key,
+            'provider_type': self.p2.provider_type, 'name': self.p2.name,
         }
         self.assertEquals(json.loads(response.content), expected)
     
-    def test_get_provider_by_name(self):
-        '''Get a provider by name'''
-        #TODO: implement me!
-        pass
-    
     def test_get_provider_by_id_not_found(self):
         '''Get a provider by wrong id'''
-        response = self.client.get(self.path + '3')
+        response = self.client.get(self.path + '99999')
+        self.assertEquals(response.status_code, 404)
+
+    def test_get_provider_by_name(self):
+        '''Get a provider by name'''
+        response = self.client.get(self.path + "?name=prov1")
+        self.assertEquals(response.status_code, 200)
+        expected = {
+            'id': self.p1.id, 'access_key': self.p1.access_key,
+            'provider_type': self.p1.provider_type, 'name': self.p1.name
+        }
+        self.assertEquals(json.loads(response.content), expected)
+    
+    def test_get_provider_by_name_not_found(self):
+        '''Get a provider by wrong name'''
+        response = self.client.get(self.path + "?name=prov1nothere")
         self.assertEquals(response.status_code, 404)
 
 
@@ -110,5 +151,64 @@ class POSTProviderTest(TestCase):
             self.path, json.dumps(data), content_type='application/json')
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, expected)
+        
         # Make sure it wasn't saved in the DB
         self.assertEquals(len(Provider.objects.all()), 0)
+
+    def test_delete_provider(self):
+        """Delete a provider"""
+        # first let's create a provider
+        initial_provider_count = len(Provider.objects.all())
+        data = {
+            'name': 'A brand new provider',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        new_data = json.loads(resp_new.content)
+        # check that it was added to the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
+
+        # now delete the newly added provider
+        id = new_data["id"]
+        resp = self.client.delete(self.path + str(id))
+        self.assertEquals(resp.status_code, 204)
+        # check that it was also deleted from the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count)
+
+    def test_update_provider_name(self):
+        """Update the name for a provider"""
+        # first let's create a provider
+        initial_provider_count = len(Provider.objects.all())
+        data = {
+            'name': 'A provider to be updated',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey2',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        new_data = json.loads(resp_new.content)
+        # check that it was added to the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
+
+        # now update the newly added provider
+        id = new_data["id"]
+        new_name = "ThisNameIsMuchBetter"
+        data_updated = {
+            'name': new_name
+        }
+        resp = self.client.put(
+            self.path + str(id), json.dumps(data_updated), content_type='application/json')
+        self.assertEquals(resp.status_code, 200)
+
+        data["name"] = new_name
+        data["id"] = id
+        expected = data
+        self.assertEquals(json.loads(resp.content), expected)
+
+        #Check that it was also updated in the DB
+        p = Provider.objects.get(id=id)
+        self.assertEquals(p.name, new_name)

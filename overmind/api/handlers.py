@@ -79,7 +79,6 @@ class ProviderHandler(BaseHandler):
             provider = self.model.objects.get(id=id)
         except self.model.DoesNotExist:
             return rc.NOT_FOUND
-        attrs = self.flatten_dict(request.POST)
         
         # Update name if present
         name = attrs.get('name')
