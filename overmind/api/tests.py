@@ -293,6 +293,7 @@ class UpdateProviderTest(TestCase):
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, expected)
 
+
 class DeleteProviderTest(TestCase):
     urls = 'overmind.test_urls'
     

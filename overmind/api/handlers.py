@@ -99,7 +99,7 @@ class ProviderHandler(BaseHandler):
             field_value = attrs[field]
             if field_value == "":
                 resp = rc.BAD_REQUEST
-                resp.write(': %s cannot be empty' % param)
+                resp.write(': %s cannot be empty' % field)
                 return resp
             if field_value != getattr(provider, field):
                 resp = rc.BAD_REQUEST
