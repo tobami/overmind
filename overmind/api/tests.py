@@ -235,6 +235,34 @@ class UpdateProviderTest(TestCase):
 
         self.assertEquals(resp.status_code, 400)
 
+    def test_update_provider_empty_access_key(self):
+        """Should not update a provider if access_key is empty"""
+        # first let's create a provider
+        initial_provider_count = len(Provider.objects.all())
+        data = {
+            'name': 'A provider to be updated',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        new_data = json.loads(resp_new.content)
+        # check that it was added to the DB
+        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
+
+        # now try to update the provider while specifying an empty access key
+        id = new_data["id"]
+        new_name = "ThisNameIsMuchBetter"
+        data_updated = {
+            'name': new_name,
+            'access_key': '',
+        }
+        resp = self.client.put(
+            self.path + str(id), json.dumps(data_updated), content_type='application/json')
+
+        self.assertEquals(resp.status_code, 400)
+
     def test_update_provider_wrong_access_key(self):
         """Should not update a provider if access_key is wrong"""
         # first let's create a provider
@@ -261,7 +289,9 @@ class UpdateProviderTest(TestCase):
         resp = self.client.put(
             self.path + str(id), json.dumps(data_updated), content_type='application/json')
 
+        expected = "Bad Request: bad value %s for access_key" % data_updated['access_key']
         self.assertEquals(resp.status_code, 400)
+        self.assertEquals(resp.content, expected)
 
 class DeleteProviderTest(TestCase):
     urls = 'overmind.test_urls'

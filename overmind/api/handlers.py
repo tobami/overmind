@@ -101,6 +101,10 @@ class ProviderHandler(BaseHandler):
                 resp = rc.BAD_REQUEST
                 resp.write(': %s cannot be empty' % param)
                 return resp
+            if field_value != getattr(provider, field):
+                resp = rc.BAD_REQUEST
+                resp.write(': bad value %s for %s' % (field_value, field))
+                return resp
             setattr( provider, field, field_value )
         
         provider.save()
