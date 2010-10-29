@@ -91,7 +91,7 @@ class ReadProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_provider_by_id_not_found(self):
-        '''Should return NOT_FOUND because we requested a provider with non existing id'''
+        '''Should return NOT_FOUND when requesting a provider with non existing id'''
         response = self.client.get(self.path + '99999')
         self.assertEquals(response.status_code, 404)
 
@@ -106,7 +106,7 @@ class ReadProviderTest(TestCase):
         self.assertEquals(json.loads(response.content), expected)
     
     def test_get_provider_by_name_not_found(self):
-        '''Should return NOT_FOUND because we requested a provider with a non existing name'''
+        '''Should return NOT_FOUND when requesting a provider with a non existing name'''
         response = self.client.get(self.path + "?name=prov1nothere")
         self.assertEquals(response.status_code, 404)
 
@@ -119,7 +119,7 @@ class CreateProviderTest(TestCase):
         self.client = Client()
     
     def test_create_provider(self):
-        """Should create a new provider"""
+        '''Should create a new provider when request is valid'''
         data = {
             'name': 'A new provider',
             'provider_type': 'DUMMY',
@@ -139,7 +139,7 @@ class CreateProviderTest(TestCase):
         self.assertEquals(p.provider_type, 'DUMMY')
 
     def test_create_provider_missing_access_key(self):
-        """Should not create a new provider if access_key is missing"""
+        """Should not create a new provider when access_key is missing"""
         data = {'name': 'A new provider', 'provider_type': 'DUMMY'}
         expected = "Bad Request\naccess_key: This field is required."
         resp = self.client.post(
@@ -151,7 +151,7 @@ class CreateProviderTest(TestCase):
         self.assertEquals(len(Provider.objects.all()), 0)
 
     def test_create_provider_empty_access_key(self):
-        """Should not create a new provider if access_key is empty"""
+        '''Should not create a new provider when access_key is empty'''
         data = {'name': 'A new provider', 
                 'provider_type': 'DUMMY',
                 'access_key': '',
@@ -173,7 +173,7 @@ class UpdateProviderTest(TestCase):
         self.client = Client()
     
     def test_update_provider_name(self):
-        """Should update the provider name"""
+        '''Should update the provider name when request is valid'''
         # first let's create a provider
         initial_provider_count = len(Provider.objects.all())
         data = {
@@ -185,31 +185,25 @@ class UpdateProviderTest(TestCase):
             self.path, json.dumps(data), content_type='application/json')
         self.assertEquals(resp_new.status_code, 200)
         new_data = json.loads(resp_new.content)
+        
         # check that it was added to the DB
         self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
 
         # now update the newly added provider
-        id = new_data["id"]
-        new_name = "ThisNameIsMuchBetter"
-        data_updated = {
-            'name': new_name,
-            'access_key': 'somekey2',
-        }
+        new_data['name'] = "ThisNameIsMuchBetter"
         resp = self.client.put(
-            self.path + str(id), json.dumps(data_updated), content_type='application/json')
+            self.path + str(new_data["id"]), json.dumps(new_data), content_type='application/json')
         self.assertEquals(resp.status_code, 200)
 
-        data["name"] = new_name
-        data["id"] = id
-        expected = data
+        expected = new_data
         self.assertEquals(json.loads(resp.content), expected)
 
         #Check that it was also updated in the DB
-        p = Provider.objects.get(id=id)
-        self.assertEquals(p.name, new_name)
+        p = Provider.objects.get(id=new_data['id'])
+        self.assertEquals(p.name, new_data['name'])
 
     def test_update_provider_missing_access_key(self):
-        """Should not update a provider if access_key is missing"""
+        '''Should not update a provider when access_key is missing'''
         # first let's create a provider
         initial_provider_count = len(Provider.objects.all())
         data = {
@@ -236,7 +230,7 @@ class UpdateProviderTest(TestCase):
         self.assertEquals(resp.status_code, 400)
 
     def test_update_provider_empty_access_key(self):
-        """Should not update a provider if access_key is empty"""
+        """Should not update a provider when access_key is empty"""
         # first let's create a provider
         initial_provider_count = len(Provider.objects.all())
         data = {
@@ -263,8 +257,8 @@ class UpdateProviderTest(TestCase):
 
         self.assertEquals(resp.status_code, 400)
 
-    def test_update_provider_wrong_access_key(self):
-        """Should not update a provider if access_key is wrong"""
+    def test_update_provider_missing_provider_type(self):
+        '''Should not update a provider when provider_type is missing'''
         # first let's create a provider
         initial_provider_count = len(Provider.objects.all())
         data = {
@@ -289,7 +283,7 @@ class UpdateProviderTest(TestCase):
         resp = self.client.put(
             self.path + str(id), json.dumps(data_updated), content_type='application/json')
 
-        expected = "Bad Request: bad value %s for access_key" % data_updated['access_key']
+        expected = "Bad Request\nprovider_type: This field is required."
         self.assertEquals(resp.status_code, 400)
         self.assertEquals(resp.content, expected)
 
@@ -302,7 +296,7 @@ class DeleteProviderTest(TestCase):
         self.client = Client()
     
     def test_delete_provider(self):
-        """Should delete a provider"""
+        '''Should delete a provider'''
         # first let's create a provider
         initial_provider_count = len(Provider.objects.all())
         data = {

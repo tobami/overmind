@@ -4,7 +4,7 @@ from libcloud.types import InvalidCredsException
 
 from provisioning.provider_meta import PROVIDERS
 from provisioning.models import Provider, Node, get_state
-from provisioning.views import save_new_node, save_new_provider
+from provisioning.views import save_new_node, save_new_provider, update_provider
 import copy, logging
 
 # Unit tests are not working for HttpBasicAuthentication
@@ -80,35 +80,21 @@ class ProviderHandler(BaseHandler):
         except self.model.DoesNotExist:
             return rc.NOT_FOUND
         
-        # Update name if present
-        name = attrs.get('name')
-        if name is not None and name != provider.name:
-            try:
-                self.model.objects.get(name=name)
-                return rc.DUPLICATE_ENTRY
-            except self.model.DoesNotExist:
-                provider.name = name
-        
-        # Get provider_type (not an update option)
-        provider_type = provider.provider_type
-        
-        # Validate keys
-        for field in ['access_key', 'secret_key']:
-            if PROVIDERS[provider_type][field] is None or field not in attrs:
-                continue
-            field_value = attrs[field]
-            if field_value == "":
-                resp = rc.BAD_REQUEST
-                resp.write(': %s cannot be empty' % field)
-                return resp
-            if field_value != getattr(provider, field):
-                resp = rc.BAD_REQUEST
-                resp.write(': bad value %s for %s' % (field_value, field))
-                return resp
-            setattr( provider, field, field_value )
-        
-        provider.save()
-        return provider
+        # Pass data to form Validation
+        error, form, provider = update_provider(attrs, provider)
+        if error is None:
+            return provider
+        else:
+            resp = rc.BAD_REQUEST
+            if error == 'form':
+                for k, v in form.errors.items():
+                    formerror = v[0]
+                    if type(formerror) != unicode:
+                        formerror = formerror.__unicode__()
+                    resp.write("\n" + k + ": " + formerror)
+            else:
+                resp.write("\n" + error)
+            return resp
     
     def delete(self, request, *args, **kwargs):
         if not _TESTING and not request.user.has_perm('provisioning.delete_provider'):
@@ -136,7 +122,7 @@ class NodeHandler(BaseHandler):
             request.data = request.POST
         attrs = self.flatten_dict(request.data)
         
-        # Modify REST "provider_id" to "provider" (expected form field)
+        # Modify REST's "provider_id" to "provider" (expected form field)
         data = copy.deepcopy(request.POST)
         data['provider'] = data.get('provider_id','')
         if 'provider_id' in data: del data['provider_id']

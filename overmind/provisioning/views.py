@@ -90,27 +90,33 @@ def newprovider(request):
     return render_to_response('provider_form.html', { 'form': form, 'error': error })
 
 def save_new_provider(data):
-    error = None
-    form = None
     form = ProviderForm(data.get('provider_type'), data)
+    return save_provider(form)
+
+def update_provider(data, provider):
+    form = ProviderForm(data.get('provider_type'), data, instance=provider)
+    return save_provider(form)
+
+def save_provider(form):
+    error = None
     if form.is_valid():
-        newprovider = None
+        provider = None
         try:
-            newprovider = form.save()
+            provider = form.save()
             #TODO: defer importing to a work queue
-            newprovider.import_nodes()
+            provider.import_nodes()
         except InvalidCredsException:
             # Delete provider if InvalidCreds is raised (by EC2)
             # after it has been saved
-            if newprovider: newprovider.delete()
+            if provider: provider.delete()
             # Return form with InvalidCreds error
             error = 'Invalid account credentials'
         except Exception, e:#Unexpected error. Log
             error = e
             logging.error(error)
         else:
-            logging.info('New provider created %s' % newprovider.name)
-            return None, form, newprovider
+            logging.info('Provider saved %s' % provider.name)
+            return None, form, provider
     else:
         error = 'form'
     return error, form, None
