@@ -3,20 +3,42 @@ from django.test.client import Client
 from django.contrib.auth.models import User, Group, Permission
 from provisioning.models import Provider, Node
 import simplejson as json
+import copy
 
 
-class ReadProviderTest(TestCase):
+class BaseProviderTestCase(TestCase):
     urls = 'overmind.test_urls'
     
     def setUp(self):
+        self.path = "/api/providers/"
+        
         op = Group.objects.get(name='Operator')
         self.user = User.objects.create_user(
             username='testuser', email='t@t.com', password='test1')
         self.user.groups.add(op)
         self.user.save()
         
-        self.path = "/api/providers/"
         self.client = Client()
+        #login = self.client.login(
+        #username=self.user.username, password=self.user.password)
+        #self.assertTrue(login)
+    
+    def create_provider(self):
+        '''Utility function to create providers using the api'''
+        data = {
+            'name': 'A provider to be updated',
+            'provider_type': 'DUMMY',
+            'access_key': 'somekey',
+        }
+        resp_new = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        self.assertEquals(resp_new.status_code, 200)
+        return json.loads(resp_new.content)
+
+
+class ReadProviderTest(BaseProviderTestCase):
+    def setUp(self):
+        super(ReadProviderTest, self).setUp()
         
         self.p1 = Provider(name="prov1", provider_type="DUMMY", access_key="keyzz")
         self.p1.save()
@@ -27,15 +49,12 @@ class ReadProviderTest(TestCase):
     
     def test_not_authenticated(self):
         '''A non authenticated user should get 401'''
+        # NOTE: Use non-authenticated client
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 401)
     
     def test_get_all_providers(self):
         '''Should show all existing providers'''
-        #login = self.client.login(
-            #username=self.user.username, password=self.user.password)
-        #self.assertTrue(login)
-        
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 200)
         content = json.loads(response.content)
@@ -61,7 +80,7 @@ class ReadProviderTest(TestCase):
             'provider_type': self.p2.provider_type, 'name': self.p2.name},
         ]
         self.assertEquals(json.loads(response.content), expected)
-
+    
     def test_get_providers_by_type_dedicated(self):
         '''Should show all providers of type dedicated'''
         response = self.client.get(self.path + "?provider_type=dedicated")
@@ -79,7 +98,7 @@ class ReadProviderTest(TestCase):
         self.assertEquals(response.status_code, 200)
         expected = []
         self.assertEquals(json.loads(response.content), expected)
-
+    
     def test_get_provider_by_id(self):
         '''Should show provider with id=2'''
         response = self.client.get(self.path + "2")
@@ -94,7 +113,7 @@ class ReadProviderTest(TestCase):
         '''Should return NOT_FOUND when requesting a provider with non existing id'''
         response = self.client.get(self.path + '99999')
         self.assertEquals(response.status_code, 404)
-
+    
     def test_get_provider_by_name(self):
         '''Should show provider with name "prov1"'''
         response = self.client.get(self.path + "?name=prov1")
@@ -111,13 +130,7 @@ class ReadProviderTest(TestCase):
         self.assertEquals(response.status_code, 404)
 
 
-class CreateProviderTest(TestCase):
-    urls = 'overmind.test_urls'
-    
-    def setUp(self):
-        self.path = "/api/providers/"
-        self.client = Client()
-    
+class CreateProviderTest(BaseProviderTestCase):
     def test_create_provider(self):
         '''Should create a new provider when request is valid'''
         data = {
@@ -137,7 +150,7 @@ class CreateProviderTest(TestCase):
         p = Provider.objects.get(id=1)
         self.assertEquals(p.name, 'A new provider')
         self.assertEquals(p.provider_type, 'DUMMY')
-
+    
     def test_create_provider_missing_access_key(self):
         """Should not create a new provider when access_key is missing"""
         data = {'name': 'A new provider', 'provider_type': 'DUMMY'}
@@ -149,7 +162,7 @@ class CreateProviderTest(TestCase):
         
         # Make sure it wasn't saved in the DB
         self.assertEquals(len(Provider.objects.all()), 0)
-
+    
     def test_create_provider_empty_access_key(self):
         '''Should not create a new provider when access_key is empty'''
         data = {'name': 'A new provider', 
@@ -165,156 +178,80 @@ class CreateProviderTest(TestCase):
         # Make sure it wasn't saved in the DB
         self.assertEquals(len(Provider.objects.all()), 0)
 
-class UpdateProviderTest(TestCase):
-    urls = 'overmind.test_urls'
-    
-    def setUp(self):
-        self.path = "/api/providers/"
-        self.client = Client()
-    
+
+class UpdateProviderTest(BaseProviderTestCase):
     def test_update_provider_name(self):
         '''Should update the provider name when request is valid'''
-        # first let's create a provider
-        initial_provider_count = len(Provider.objects.all())
-        data = {
-            'name': 'A provider to be updated',
-            'provider_type': 'DUMMY',
-            'access_key': 'somekey2',
-        }
-        resp_new = self.client.post(
-            self.path, json.dumps(data), content_type='application/json')
-        self.assertEquals(resp_new.status_code, 200)
-        new_data = json.loads(resp_new.content)
+        # First create a provider
+        new_data = self.create_provider()
         
-        # check that it was added to the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
-
-        # now update the newly added provider
+        # Now update the newly added provider
         new_data['name'] = "ThisNameIsMuchBetter"
         resp = self.client.put(
             self.path + str(new_data["id"]), json.dumps(new_data), content_type='application/json')
         self.assertEquals(resp.status_code, 200)
-
+        
         expected = new_data
         self.assertEquals(json.loads(resp.content), expected)
-
+        
         #Check that it was also updated in the DB
         p = Provider.objects.get(id=new_data['id'])
         self.assertEquals(p.name, new_data['name'])
-
-    def test_update_provider_missing_access_key(self):
-        '''Should not update a provider when access_key is missing'''
-        # first let's create a provider
-        initial_provider_count = len(Provider.objects.all())
-        data = {
-            'name': 'A provider to be updated',
-            'provider_type': 'DUMMY',
-            'access_key': 'somekey',
-        }
-        resp_new = self.client.post(
-            self.path, json.dumps(data), content_type='application/json')
-        self.assertEquals(resp_new.status_code, 200)
-        new_data = json.loads(resp_new.content)
-        # check that it was added to the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
-
-        # now try to update the provider while not specifying an access key
-        id = new_data["id"]
-        new_name = "ThisNameIsMuchBetter"
-        data_updated = {
-            'name': new_name,
-        }
-        resp = self.client.put(
-            self.path + str(id), json.dumps(data_updated), content_type='application/json')
-
-        self.assertEquals(resp.status_code, 400)
-
-    def test_update_provider_empty_access_key(self):
-        """Should not update a provider when access_key is empty"""
-        # first let's create a provider
-        initial_provider_count = len(Provider.objects.all())
-        data = {
-            'name': 'A provider to be updated',
-            'provider_type': 'DUMMY',
-            'access_key': 'somekey',
-        }
-        resp_new = self.client.post(
-            self.path, json.dumps(data), content_type='application/json')
-        self.assertEquals(resp_new.status_code, 200)
-        new_data = json.loads(resp_new.content)
-        # check that it was added to the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
-
-        # now try to update the provider while specifying an empty access key
-        id = new_data["id"]
-        new_name = "ThisNameIsMuchBetter"
-        data_updated = {
-            'name': new_name,
-            'access_key': '',
-        }
-        resp = self.client.put(
-            self.path + str(id), json.dumps(data_updated), content_type='application/json')
-
-        self.assertEquals(resp.status_code, 400)
-
-    def test_update_provider_missing_provider_type(self):
-        '''Should not update a provider when provider_type is missing'''
-        # first let's create a provider
-        initial_provider_count = len(Provider.objects.all())
-        data = {
-            'name': 'A provider to be updated',
-            'provider_type': 'DUMMY',
-            'access_key': 'somekey',
-        }
-        resp_new = self.client.post(
-            self.path, json.dumps(data), content_type='application/json')
-        self.assertEquals(resp_new.status_code, 200)
-        new_data = json.loads(resp_new.content)
-        # check that it was added to the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
-
-        # now try to update the provider while specifying the wrong access key
-        id = new_data["id"]
-        new_name = "ThisNameIsMuchBetter"
-        data_updated = {
-            'name': new_name,
-            'access_key': 'somewrongkey',
-        }
-        resp = self.client.put(
-            self.path + str(id), json.dumps(data_updated), content_type='application/json')
-
-        expected = "Bad Request\nprovider_type: This field is required."
-        self.assertEquals(resp.status_code, 400)
-        self.assertEquals(resp.content, expected)
-
-
-class DeleteProviderTest(TestCase):
-    urls = 'overmind.test_urls'
     
-    def setUp(self):
-        self.path = "/api/providers/"
-        self.client = Client()
+    def test_update_provider_missing_field(self):
+        '''Should not update a provider when a field is missing'''
+        # First create a provider
+        new_data = self.create_provider()
+        
+        # Now try to update the provider while leaving out each field in turn
+        for field in new_data:
+            if field == "id": continue#field "id" is not required
+            modified_data = copy.deepcopy(new_data)#Don't alter original data
+            del modified_data[field]#remove a required field
+            resp = self.client.put(
+                self.path + str(new_data['id']),
+                json.dumps(modified_data),
+                content_type='application/json')
+            expected = "Bad Request\n%s: This field is required." % field
+            self.assertEquals(resp.status_code, 400)
+            self.assertEquals(resp.content, expected)
     
+    def test_update_provider_empty_field(self):
+        """Should not update a provider when a field is empty"""
+        # First create a provider
+        new_data = self.create_provider()
+        
+        # Now try to update the provider while leaving out each field empty
+        for field in new_data:
+            if field == "id": continue#field "id" is not required
+            modified_data = copy.deepcopy(new_data)#Don't alter original data
+            modified_data[field] = ""#Make a field empty
+            resp = self.client.put(
+                self.path + str(new_data['id']),
+                json.dumps(modified_data),
+                content_type='application/json')
+            expected = "Bad Request\n%s: This field is required." % field
+            self.assertEquals(resp.status_code, 400)
+            self.assertEquals(resp.content, expected)
+
+
+class DeleteProviderTest(BaseProviderTestCase):
     def test_delete_provider(self):
         '''Should delete a provider'''
-        # first let's create a provider
-        initial_provider_count = len(Provider.objects.all())
-        data = {
-            'name': 'A brand new provider',
-            'provider_type': 'DUMMY',
-            'access_key': 'somekey',
-        }
-        resp_new = self.client.post(
-            self.path, json.dumps(data), content_type='application/json')
-        self.assertEquals(resp_new.status_code, 200)
-        new_data = json.loads(resp_new.content)
-        # check that it was added to the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count+1)
-
-        # now delete the newly added provider
-        id = new_data["id"]
-        resp = self.client.delete(self.path + str(id))
+        # First create a provider
+        new_data = self.create_provider()
+        
+        # Now delete the newly added provider
+        resp = self.client.delete(self.path + str(new_data['id']))
         self.assertEquals(resp.status_code, 204)
-        # check that it was also deleted from the DB
-        self.assertEquals(len(Provider.objects.all()), initial_provider_count)
-
+        
+        # Check that the api returns not found
+        resp = self.client.get(self.path + str(new_data['id']))
+        self.assertEquals(resp.status_code, 404, 'The API should return NOT_FOUND')
+        
+        # Check that it was also deleted from the DB
+        try:
+            Provider.objects.get(id=new_data['id'])
+            self.fail('The provider was not deleted from the DB')
+        except Provider.DoesNotExist:
+            pass
