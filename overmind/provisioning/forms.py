@@ -35,31 +35,32 @@ class NodeForm(forms.ModelForm):
     
     def __init__(self, provider_id, *args, **kwargs):
         super(NodeForm, self).__init__(*args, **kwargs)
-        p = Provider.objects.get(id=provider_id)
-        self.fields['provider'].initial = p.id
+        prov = Provider.objects.get(id=provider_id)
+        self.fields['provider'].initial = prov.id
         provider_info = PROVIDERS[p.provider_type]
         # Add custom plugin fields
         for field in provider_info.get('form_fields', []):
             # These fields will be added later
-            if field in ['realm', 'flavor', 'image']: continue
+            if field in ['realm', 'flavor', 'image']:
+                continue
             self.fields[field] = forms.CharField(max_length=30)
         
         # Add realm field
         if 'realm' in provider_info.get('form_fields', []):
             self.fields['realm'] = forms.ChoiceField()
-            for realm in p.get_realms():
+            for realm in prov.get_realms():
                 self.fields['realm'].choices += [
                     (realm.id, realm.country + " - " + realm.name)
                 ]
         # Add flavor field
         if 'flavor' in provider_info.get('form_fields', []):
             self.fields['flavor'] = forms.ChoiceField()
-            for flavor in p.get_flavors():
+            for flavor in prov.get_flavors():
                 self.fields['flavor'].choices += [(flavor.id, flavor.name)]
         # Add flavor field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
-            for img in p.get_images():
+            for img in prov.get_images():
                 self.fields['image'].choices += [(img.id, img.name)]
     
     class Meta:
@@ -94,7 +95,8 @@ class UserCreationFormExtended(UserCreationForm):
 
 class BasicEditForm(forms.ModelForm):
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Password confirmation", widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label="Password confirmation", widget=forms.PasswordInput)
     
     def __init__(self, *args, **kwargs):
         super(BasicEditForm, self).__init__(*args, **kwargs)

@@ -23,11 +23,12 @@ def overview(request):
             ['created by', n.creator],
             ['created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
         ]
-        for k,v in n.extra_data().items():
-            fields.append([k,v])
+        for key, val in n.extra_data().items():
+            fields.append([key, val])
         
         for field in fields:
-            datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1]) + "</td></tr></td>"
+            datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1])
+            datatable += "</td></tr></td>"
         datatable += "</table>"
         
         actions_list = []
@@ -82,12 +83,15 @@ def provider(request):
 def newprovider(request):
     error = None
     if request.method == 'POST':
-        error, form, provider = save_new_provider(request.POST)
-        if error is None: return HttpResponse('<p>success</p>')
+        error, form, prov = save_new_provider(request.POST)
+        if error is None:
+            return HttpResponse('<p>success</p>')
     else:
         form = ProviderForm(request.GET.get("provider_type"))
-    if error == 'form': error = None
-    return render_to_response('provider_form.html', { 'form': form, 'error': error })
+    if error == 'form':
+        error = None
+    return render_to_response('provider_form.html',
+        { 'form': form, 'error': error })
 
 def save_new_provider(data):
     form = ProviderForm(data.get('provider_type'), data)
@@ -108,7 +112,8 @@ def save_provider(form):
         except InvalidCredsException:
             # Delete provider if InvalidCreds is raised (by EC2)
             # after it has been saved
-            if provider: provider.delete()
+            if provider:
+                provider.delete()
             # Return form with InvalidCreds error
             error = 'Invalid account credentials'
         except Exception, e:#Unexpected error. Log
@@ -137,7 +142,7 @@ def deleteprovider(request, provider_id):
 
 @permission_required('provisioning.add_node')
 def node(request):
-    '''Displays a provider selection list to call the appropiate node creation form'''
+    '''Displays a provider selection list to call the node creation form'''
     variables = RequestContext(request, {
         'provider_list': Action.objects.get(name='create').provider_set.all(),
     })
@@ -148,16 +153,19 @@ def newnode(request):
     error = None
     if request.method == 'POST':
         error, form, node = save_new_node(request.POST, request.user)
-        if error is None: return HttpResponse('<p>success</p>')
+        if error is None:
+            return HttpResponse('<p>success</p>')
     else:
         form = NodeForm(request.GET.get("provider"))
-    if error == 'form': error = None
+    if error == 'form':
+        error = None
     return render_to_response('node_form.html', { 'form': form, 'error': error })
 
 def save_new_node(data, user):
     provider_id = data.get("provider")
     
-    if not provider_id: return 'Incorrect provider id', None, None
+    if not provider_id:
+        return 'Incorrect provider id', None, None
     error = None
     form = None
     try:
@@ -169,7 +177,7 @@ def save_new_node(data, user):
     if form is not None:
         if form.is_valid():
             try:
-                n = Node.objects.get(
+                node = Node.objects.get(
                     provider=provider, name=form.cleaned_data['name']
                 )
                 error = 'A node with that name already exists'
@@ -250,8 +258,9 @@ def edituser(request, id):
             group = request.POST.get('group')
             if group != "1" and count_admin_users() <= 1:
                 #if id of group is not Admin and there is only one admin user
-                return HttpResponse(
-                    "<p>Not allowed: you cannot remove admin rights from the only admin user</p>")
+                errormsg = "<p>Not allowed: you cannot remove admin rights"
+                errormsg += " from the only admin user</p>"
+                return HttpResponse(errormsg)
             form = UserEditForm(request.POST, instance=edit_user)
         else:
             form = ProfileEditForm(request.POST, instance=edit_user)

@@ -1,6 +1,6 @@
 from django.db import models
 from provisioning.controllers import ProviderController
-from provider_meta import PROVIDERS
+from provisioning.provider_meta import PROVIDERS
 import logging
 import simplejson as json
 
@@ -85,7 +85,8 @@ class Provider(models.Model):
             return False
     
     def create_connection(self):
-        if self.conn is None: self.conn = ProviderController(self)
+        if self.conn is None:
+            self.conn = ProviderController(self)
     
     def import_nodes(self):
         if not self.supports('list'): return
@@ -210,7 +211,8 @@ class Node(models.Model):
         self._extra_data = json.dumps(data)
     
     def extra_data(self):
-        if self._extra_data == '': return {}
+        if self._extra_data == '':
+            return {}
         return json.loads(self._extra_data)
     
     def reboot(self):

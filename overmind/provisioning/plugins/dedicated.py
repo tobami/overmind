@@ -34,8 +34,8 @@ class Driver(NodeDriver):
         except ImportError:
             # Validate with regex
             import re
-            ValidIpAddressRegex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
-            if re.match(ValidIpAddressRegex, ip) is None:
+            valid_ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+            if re.match(valid_ip_regex, ip) is None:
                 raise Exception, "Incorrect IP"
     
     def create_node(self, **kwargs):

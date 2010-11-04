@@ -57,7 +57,6 @@ class ReadProviderTest(BaseProviderTestCase):
         '''Should show all existing providers'''
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 200)
-        content = json.loads(response.content)
         expected = [
             {'id': self.p1.id, 'access_key': self.p1.access_key,
             'provider_type': self.p1.provider_type, 'name': self.p1.name},
@@ -71,7 +70,6 @@ class ReadProviderTest(BaseProviderTestCase):
     def test_get_providers_by_type_dummy(self):
         '''Should show all providers of type DUMMY'''
         response = self.client.get(self.path + "?provider_type=DUMMY")
-        content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
         expected = [
             {'id': self.p1.id, 'access_key': self.p1.access_key,
@@ -84,7 +82,6 @@ class ReadProviderTest(BaseProviderTestCase):
     def test_get_providers_by_type_dedicated(self):
         '''Should show all providers of type dedicated'''
         response = self.client.get(self.path + "?provider_type=dedicated")
-        content = json.loads(response.content)
         self.assertEquals(response.status_code, 200)
         expected = [
             {'id': self.p3.id, 'access_key': self.p3.access_key,

@@ -28,7 +28,8 @@ class ProviderController():
             Driver = plugins.get_driver(self.provider_type)
             logging.debug('selected "%s" plugin driver' % self.provider_type)
         except Exception, e:
-            logging.critical('ProviderController can\'t find a driver for %s' % self.provider_type)
+            logging.critical(
+                'ProviderController can\'t find a driver for %s' % self.provider_type)
             raise Exception, "Unknown provider %s" % self.provider_type
         
         # Providers with only one access key
@@ -57,7 +58,8 @@ class ProviderController():
                 )
             elif 'generates_password' in features:
                 # Use deploy_node to deploy public key
-                logging.debug("Provider feature: generates_password. Use deploy_node")
+                logging.debug(
+                    "Provider feature: generates_password. Use deploy_node")
                 pubkey = SSHKeyDeployment(settings.PUBLIC_KEY) 
                 node = self.conn.deploy_node(
                     name=name, image=image, size=flavor, location=realm,
@@ -98,14 +100,16 @@ class ProviderController():
         }
     
     def reboot_node(self, node):
-        #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
+        #TODO: this is braindead
+        #We should be able to do self.conn.get_node(uuid=uuid)
         for n in self.conn.list_nodes():
             if n.uuid == node.uuid:
                 return self.conn.reboot_node(n)
         return False
     
     def destroy_node(self, node):
-        #TODO: this is braindead. We should be able to do self.conn.get_node(uuid=uuid)
+        #TODO: this is braindead
+        #We should be able to do self.conn.get_node(uuid=uuid)
         for n in self.conn.list_nodes():
             if n.uuid == node.uuid:
                 return self.conn.destroy_node(n)
