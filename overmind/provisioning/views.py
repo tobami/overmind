@@ -22,6 +22,7 @@ def overview(request):
             ['uuid', n.uuid],
             ['created by', n.creator],
             ['created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+            ['OS image', n.image],
         ]
         for key, val in n.extra_data().items():
             fields.append([key, val])
@@ -108,6 +109,7 @@ def save_provider(form):
         try:
             provider = form.save()
             #TODO: defer importing to a work queue
+            provider.import_images()
             provider.import_nodes()
         except InvalidCredsException:
             # Delete provider if InvalidCreds is raised (by EC2)
@@ -201,7 +203,7 @@ def save_new_node(data, user):
             error = 'form'
     return error, form, None
 
-@permission_required('provisioning.reboot_node')
+@permission_required('provisioning.change_node')
 def rebootnode(request, node_id):
     node = Node.objects.get(id=node_id)
     result = node.reboot()

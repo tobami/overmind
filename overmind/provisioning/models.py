@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from provisioning.controllers import ProviderController
 from provisioning.provider_meta import PROVIDERS
 import logging
@@ -58,6 +58,7 @@ class Provider(models.Model):
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
             self._meta.get_field('access_key').blank = False
+        
         # Read optional extra_param
         if 'extra_param' in PROVIDERS[self.provider_type].keys():
             self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
@@ -96,24 +97,25 @@ class Provider(models.Model):
         for node in nodes:
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
-                # Don't import already existing node, update instead
-                n.public_ip = node.public_ip[0]
-                n.state     = get_state(node.state)
-                n.save_extra_data(node.extra)
-                n.save()
             except Node.DoesNotExist:
-                logging.debug("import_nodes(): adding %s ..." % node)
+                logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
                     name      = node.name,
                     uuid      = node.uuid,
                     provider  = self,
-                    public_ip = node.public_ip[0],
-                    state     = get_state(node.state),
-                    creator   = 'imported by overmind',
+                    creator   = 'imported by Overmind',
                 )
-                n.save_extra_data(node.extra)
-                n.save()
-                logging.info("import_nodes(): succesfully added %s" % node.name)
+            try:
+                n.image = Image.objects.get(
+                    image_id=node.extra.get('imageId'), provider=self)
+            except Image.DoesNotExist:
+                n.image = None
+            # Import/Update node info
+            n.public_ip = node.public_ip[0]
+            n.state = get_state(node.state),
+            n.save_extra_data(node.extra)
+            n.save()
+            logging.debug("import_nodes(): succesfully saved %s" % node.name)
         
         # Delete nodes in the DB not listed by the provider
         for n in Node.objects.filter(provider=self
@@ -131,6 +133,31 @@ class Provider(models.Model):
                 n.decommission()
         logging.debug("Finished synching")
     
+    @transaction.commit_on_success()
+    def import_images(self):
+        '''Get all images from this provider and store them in the DB
+        The transaction.commit_on_success decorator is needed because
+        some providers have thousands of images, which take a long time
+        to save to the DB as separated transactions
+        '''
+        self.create_connection()
+        for image in self.conn.get_images():
+            try:
+                # Update image if it exists
+                img = Image.objects.get(image_id=image.id, provider=self)
+                img.name = image.name
+            except Image.DoesNotExist:
+                # Create new image if it didn't exist
+                img = Image(
+                    image_id = image.id,
+                    name = image.name,
+                    provider = self,
+                )
+            img.save()
+            logging.debug(
+                "Added new image '%s' for provider %s" % (img.name, self))
+        logging.debug("Imported all images for provider %s" % self)
+    
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
         self.save()
@@ -141,8 +168,7 @@ class Provider(models.Model):
         return self.conn.get_flavors()
     
     def get_images(self):
-        self.create_connection()
-        return self.conn.get_images()
+        return self.image_set.all()
     
     def get_realms(self):
         self.create_connection()
@@ -162,6 +188,19 @@ class Provider(models.Model):
     
     def __unicode__(self):
         return self.name
+
+
+class Image(models.Model):
+    '''OS image model'''
+    image_id = models.CharField(max_length=20)
+    name     = models.CharField(max_length=30)
+    provider = models.ForeignKey(Provider)
+    
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        unique_together  = ('provider', 'image_id')
 
 
 class Node(models.Model):
@@ -187,6 +226,8 @@ class Node(models.Model):
     name        = models.CharField(max_length=25)
     uuid        = models.CharField(max_length=50)
     provider    = models.ForeignKey(Provider)
+    image       = models.ForeignKey(Image, null=True, blank=True)
+    
     state       = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
@@ -194,6 +235,7 @@ class Node(models.Model):
     internal_ip = models.CharField(max_length=25, blank=True)
     hostname    = models.CharField(max_length=25, blank=True)
     _extra_data = models.TextField(blank=True)
+    
     # Overmind related fields
     environment = models.CharField(
         default='Production', max_length=2, choices=ENVIRONMENT_CHOICES

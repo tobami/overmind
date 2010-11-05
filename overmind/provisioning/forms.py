@@ -37,7 +37,7 @@ class NodeForm(forms.ModelForm):
         super(NodeForm, self).__init__(*args, **kwargs)
         prov = Provider.objects.get(id=provider_id)
         self.fields['provider'].initial = prov.id
-        provider_info = PROVIDERS[p.provider_type]
+        provider_info = PROVIDERS[prov.provider_type]
         # Add custom plugin fields
         for field in provider_info.get('form_fields', []):
             # These fields will be added later
@@ -57,7 +57,7 @@ class NodeForm(forms.ModelForm):
             self.fields['flavor'] = forms.ChoiceField()
             for flavor in prov.get_flavors():
                 self.fields['flavor'].choices += [(flavor.id, flavor.name)]
-        # Add flavor field
+        # Add image field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
             for img in prov.get_images():

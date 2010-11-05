@@ -66,6 +66,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.csrf.CsrfResponseMiddleware',
+    'django.middleware.transaction.TransactionMiddleware',#must be last
 )
 
 ROOT_URLCONF = 'overmind.urls'

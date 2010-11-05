@@ -24,7 +24,7 @@ urlpatterns += patterns('',
     # Update
     (r'^provider/update/$',\
         'provisioning.views.updateproviders'),
-    # Reset
+    # Reboot
     (r'^node/(?P<node_id>\d+)/reboot/$', 'provisioning.views.rebootnode'),
     # Delete
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
