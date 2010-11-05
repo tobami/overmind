@@ -19,7 +19,7 @@
     "model": "provisioning.action",
     "pk": 3,
     "fields": {
-      "name": "realms",
+      "name": "locations",
       "show": false
     }
   },

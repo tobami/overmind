@@ -44,7 +44,7 @@ class ProviderController():
         image  = NodeImage(form.cleaned_data.get('image'), '', self.conn)
         flavor = NodeSize(form.cleaned_data.get('flavor'), '', '', '',
             None, None, driver=self.conn)
-        realm  = NodeLocation(form.cleaned_data.get('realm'), '', '', self.conn)
+        location  = NodeLocation(form.cleaned_data.get('location'), '', '', self.conn)
         
         # Choose node creation strategy
         features = self.conn.features.get('create_node', [])
@@ -53,7 +53,7 @@ class ProviderController():
                 # Pass on public key and we are done
                 logging.debug("Provider feature: ssh_key. Pass on key")
                 node = self.conn.create_node(
-                    name=name, image=image, size=flavor, location=realm,
+                    name=name, image=image, size=flavor, location=location,
                     auth=NodeAuthSSHKey(settings.PUBLIC_KEY)
                 )
             elif 'generates_password' in features:
@@ -62,7 +62,7 @@ class ProviderController():
                     "Provider feature: generates_password. Use deploy_node")
                 pubkey = SSHKeyDeployment(settings.PUBLIC_KEY) 
                 node = self.conn.deploy_node(
-                    name=name, image=image, size=flavor, location=realm,
+                    name=name, image=image, size=flavor, location=location,
                     deploy=pubkey
                 )
             elif 'password' in features:
@@ -71,7 +71,7 @@ class ProviderController():
                 rpassword = generate_random_password(15)
                 logging.debug("Provider feature: password. Pass on password=%s to deploy_node" % rpassword)
                 node = self.conn.deploy_node(
-                    name=name, image=image, size=flavor, location=realm,
+                    name=name, image=image, size=flavor, location=location,
                     auth=NodeAuthPassword(rpassword), deploy=pubkey
                 )
             else:
@@ -80,13 +80,13 @@ class ProviderController():
                 # Include all plugin form fields in the argument dict
                 args = copy.deepcopy(form.cleaned_data)
                 # Remove unneeded fields
-                for field in ['name', 'image', 'flavor', 'realm', 'provider']:
+                for field in ['name', 'image', 'flavor', 'location', 'provider']:
                     if field in args:
                         del args[field]#Avoid colissions with default args
                 args[str(self.extra_param_name)] = str(self.extra_param_value)
                 
                 node = self.conn.create_node(
-                    name=name, image=image, size=flavor, location=realm, **args
+                    name=name, image=image, size=flavor, location=location, **args
                 )
         except Exception, e:
             logging.error('while creating node. %s: %s' % (type(e), e))
@@ -128,7 +128,7 @@ class ProviderController():
     def get_flavors(self):
         return self.conn.list_sizes()
     
-    def get_realms(self):
+    def get_locations(self):
         return self.conn.list_locations()
 
 

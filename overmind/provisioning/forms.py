@@ -41,16 +41,16 @@ class NodeForm(forms.ModelForm):
         # Add custom plugin fields
         for field in provider_info.get('form_fields', []):
             # These fields will be added later
-            if field in ['realm', 'flavor', 'image']:
+            if field in ['location', 'flavor', 'image']:
                 continue
             self.fields[field] = forms.CharField(max_length=30)
         
-        # Add realm field
-        if 'realm' in provider_info.get('form_fields', []):
-            self.fields['realm'] = forms.ChoiceField()
-            for realm in prov.get_realms():
-                self.fields['realm'].choices += [
-                    (realm.id, realm.country + " - " + realm.name)
+        # Add location field
+        if 'location' in provider_info.get('form_fields', []):
+            self.fields['location'] = forms.ChoiceField()
+            for location in prov.get_locations():
+                self.fields['location'].choices += [
+                    (location.id, location.country + " - " + location.name)
                 ]
         # Add flavor field
         if 'flavor' in provider_info.get('form_fields', []):

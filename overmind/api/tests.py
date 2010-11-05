@@ -3,7 +3,7 @@ from django.test.client import Client
 from django.contrib.auth.models import User, Group, Permission
 from provisioning.models import Provider, Node
 import simplejson as json
-import copy
+import copy, logging
 
 
 class BaseProviderTestCase(TestCase):
@@ -147,6 +147,21 @@ class CreateProviderTest(BaseProviderTestCase):
         p = Provider.objects.get(id=1)
         self.assertEquals(p.name, 'A new provider')
         self.assertEquals(p.provider_type, 'DUMMY')
+    
+    def test_create_provider_should_import_nodes(self):
+        '''Should import nodes when a new provider is created'''
+        # There shouldn't be any nodes in the DB
+        self.assertEquals(len(Node.objects.all()), 0)
+        data = {
+            'name': 'A new provider',
+            'provider_type': 'DUMMY',
+            'access_key': 'kiuuuuuu',
+        }
+        resp = self.client.post(
+            self.path, json.dumps(data), content_type='application/json')
+        
+        # There should be exactly 2 nodes in the DB now
+        self.assertEquals(len(Node.objects.all()), 2)
     
     def test_create_provider_missing_access_key(self):
         """Should not create a new provider when access_key is missing"""

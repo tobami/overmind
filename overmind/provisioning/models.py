@@ -170,9 +170,9 @@ class Provider(models.Model):
     def get_images(self):
         return self.image_set.all()
     
-    def get_realms(self):
+    def get_locations(self):
         self.create_connection()
-        return self.conn.get_realms()
+        return self.conn.get_locations()
     
     def create_node(self, data):
         self.create_connection()
