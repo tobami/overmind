@@ -41,9 +41,9 @@ def add_libcloud_providers():
         PROVIDERS[provider] = LIBCLOUD_PROVIDERS[provider]
         PROVIDERS[provider]['supported_actions'] = [
             'create', 'destroy', 'reboot',
-            'list', 'images', 'flavors', 'locations',
+            'list', 'images', 'sizes', 'locations',
         ]
-        PROVIDERS[provider]['form_fields'] = ['image', 'flavor', 'location']
+        PROVIDERS[provider]['form_fields'] = ['image', 'size', 'location']
 
 def add_plugins():
     plugin_dict = plugins.load_plugins()

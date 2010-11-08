@@ -90,6 +90,7 @@ class Provider(models.Model):
             self.conn = ProviderController(self)
     
     def import_nodes(self):
+        '''Sync nodes present at a provider with Overmind's DB'''
         if not self.supports('list'): return
         self.create_connection()
         nodes = self.conn.get_nodes()
@@ -98,6 +99,7 @@ class Provider(models.Model):
             try:
                 n = Node.objects.get(provider=self, uuid=node.uuid)
             except Node.DoesNotExist:
+                # Create a new Node
                 logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
                     name      = node.name,
@@ -105,14 +107,26 @@ class Provider(models.Model):
                     provider  = self,
                     creator   = 'imported by Overmind',
                 )
-            try:
-                n.image = Image.objects.get(
-                    image_id=node.extra.get('imageId'), provider=self)
-            except Image.DoesNotExist:
-                n.image = None
+                try:
+                    n.image = Image.objects.get(
+                        image_id=node.extra.get('imageId'), provider=self)
+                except Image.DoesNotExist:
+                    n.image = None
+                try:
+                    n.location = Location.objects.get(
+                        location_id=node.extra.get('availability'), provider=self)
+                except Location.DoesNotExist:
+                    n.location = None
+                try:
+                    size_id = node.extra.get('instancetype') or\
+                        node.extra.get('flavorId')
+                    n.size = Size.objects.get(size_id=size_id, provider=self)
+                except Size.DoesNotExist:
+                    n.size = None
+            
             # Import/Update node info
             n.public_ip = node.public_ip[0]
-            n.state = get_state(node.state),
+            n.state = get_state(node.state)
             n.save_extra_data(node.extra)
             n.save()
             logging.debug("import_nodes(): succesfully saved %s" % node.name)
@@ -128,7 +142,6 @@ class Provider(models.Model):
             # This node was probably removed from the provider by another tool
             # TODO: Needs user notification
             if not found:
-                n.state = 'Terminated'
                 logging.info("import_nodes(): Delete node %s" % n)
                 n.decommission()
         logging.debug("Finished synching")
@@ -145,34 +158,76 @@ class Provider(models.Model):
             try:
                 # Update image if it exists
                 img = Image.objects.get(image_id=image.id, provider=self)
-                img.name = image.name
             except Image.DoesNotExist:
                 # Create new image if it didn't exist
                 img = Image(
                     image_id = image.id,
-                    name = image.name,
                     provider = self,
                 )
+            img.name = image.name
             img.save()
             logging.debug(
                 "Added new image '%s' for provider %s" % (img.name, self))
         logging.debug("Imported all images for provider %s" % self)
+    
+    @transaction.commit_on_success()
+    def import_locations(self):
+        '''Get all locations from this provider and store them in the DB'''
+        self.create_connection()
+        for location in self.conn.get_locations():
+            try:
+                # Update location if it exists
+                loc = Location.objects.get(location_id=location.id, provider=self)
+            except Location.DoesNotExist:
+                # Create new location if it didn't exist
+                loc = Location(
+                    location_id = location.id,
+                    provider = self,
+                )
+            loc.name    = location.name
+            loc.country = location.country
+            loc.save()
+            logging.debug(
+                "Added new location '%s' for provider %s" % (loc.name, self))
+        logging.debug("Imported all locations for provider %s" % self)
+    
+    @transaction.commit_on_success()
+    def import_sizes(self):
+        '''Get all sizes from this provider and store them in the DB'''
+        self.create_connection()
+        for size in self.conn.get_sizes():
+            try:
+                # Update size if it exists
+                siz = Size.objects.get(size_id=size.id, provider=self)
+            except Size.DoesNotExist:
+                # Create new size if it didn't exist
+                siz = Size(
+                    size_id = size.id,
+                    provider = self,
+                )
+            siz.name      = size.name
+            siz.ram       = size.ram
+            siz.disk      = size.disk or ""
+            siz.bandwidth = size.bandwidth or ""
+            siz.price     = size.price or ""
+            siz.save()
+            logging.debug(
+                "Added new size '%s' for provider %s" % (siz.name, self))
+        logging.debug("Imported all sizes for provider %s" % self)
     
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
         self.save()
         self.import_nodes()
     
-    def get_flavors(self):
-        self.create_connection()
-        return self.conn.get_flavors()
+    def get_sizes(self):
+        return self.size_set.all()
     
     def get_images(self):
         return self.image_set.all()
     
     def get_locations(self):
-        self.create_connection()
-        return self.conn.get_locations()
+        return self.location_set.all()
     
     def create_node(self, data):
         self.create_connection()
@@ -203,6 +258,37 @@ class Image(models.Model):
         unique_together  = ('provider', 'image_id')
 
 
+class Location(models.Model):
+    '''Location model'''
+    location_id = models.CharField(max_length=20)
+    name        = models.CharField(max_length=20)
+    country     = models.CharField(max_length=20)
+    provider    = models.ForeignKey(Provider)
+    
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        unique_together  = ('provider', 'location_id')
+
+
+class Size(models.Model):
+    '''Location model'''
+    size_id   = models.CharField(max_length=20)
+    name      = models.CharField(max_length=20)
+    ram       = models.CharField(max_length=20)
+    disk      = models.CharField(max_length=20)
+    bandwidth = models.CharField(max_length=20, blank=True)
+    price     = models.CharField(max_length=20, blank=True)
+    provider  = models.ForeignKey(Provider)
+    
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        unique_together  = ('provider', 'size_id')
+
+
 class Node(models.Model):
     STATE_CHOICES = (
         (u'Begin', u'Begin'),
@@ -227,6 +313,8 @@ class Node(models.Model):
     uuid        = models.CharField(max_length=50)
     provider    = models.ForeignKey(Provider)
     image       = models.ForeignKey(Image, null=True, blank=True)
+    location    = models.ForeignKey(Location, null=True, blank=True)
+    size        = models.ForeignKey(Size, null=True, blank=True)
     
     state       = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
@@ -270,23 +358,23 @@ class Node(models.Model):
             else:
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
-        self.state = 'Terminated'
         self.decommission()
         return True
     
     def decommission(self):
+        '''Rename node and set its environment to decomissioned'''
+        self.state = 'Terminated'
         # Rename node to free the name for future use
         counter = 1
         newname = "DECOM" + str(counter) + "-" + self.name
-        while(
-            Node.objects.filter(
+        while(len(Node.objects.filter(
                 provider=self.provider,name=newname
             ).exclude(
                 id=self.id
-            )):
+            ))):
             counter += 1
             newname = "DECOM" + str(counter) + "-" + self.name
         self.name = newname
-        # Mark decommissioned and save
+        # Mark as decommissioned and save
         self.environment = 'Decommissioned'
         self.save()

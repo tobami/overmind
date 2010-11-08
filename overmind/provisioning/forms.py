@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
 
-from provisioning.models import Provider, Node
+from provisioning.models import Provider, Node, Image, Location, Size
 from provisioning.provider_meta import PROVIDERS
 
 class ProviderForm(forms.ModelForm):
@@ -41,7 +41,7 @@ class NodeForm(forms.ModelForm):
         # Add custom plugin fields
         for field in provider_info.get('form_fields', []):
             # These fields will be added later
-            if field in ['location', 'flavor', 'image']:
+            if field in ['location', 'size', 'image']:
                 continue
             self.fields[field] = forms.CharField(max_length=30)
         
@@ -52,20 +52,50 @@ class NodeForm(forms.ModelForm):
                 self.fields['location'].choices += [
                     (location.id, location.country + " - " + location.name)
                 ]
-        # Add flavor field
-        if 'flavor' in provider_info.get('form_fields', []):
-            self.fields['flavor'] = forms.ChoiceField()
-            for flavor in prov.get_flavors():
-                self.fields['flavor'].choices += [(flavor.id, flavor.name)]
+        # Add size field
+        if 'size' in provider_info.get('form_fields', []):
+            self.fields['size'] = forms.ChoiceField()
+            for size in prov.get_sizes():
+                self.fields['size'].choices += [(size.id, size.name)]
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
             for img in prov.get_images():
                 self.fields['image'].choices += [(img.id, img.name)]
     
+    def clean(self):
+        '''Transform image, location and size ids to proper objects'''
+        cleaned_data = self.cleaned_data
+        image        = cleaned_data.get('image')
+        location     = cleaned_data.get('location')
+        size         = cleaned_data.get('size')
+        
+        try:
+            cleaned_data['image'] = Image.objects.get(id=image)
+        except Image.DoesNotExist:
+            msg = u"This image id doesn't exist for this provider"
+            self._errors['image'] = self.error_class([msg])
+            del cleaned_data['image']
+        
+        try:
+            cleaned_data['location'] = Location.objects.get(id=location)
+        except Location.DoesNotExist:
+            msg = u"This location id doesn't exist for this provider"
+            self._errors['location'] = self.error_class([msg])
+            del cleaned_data['location']
+        
+        try:
+            cleaned_data['size'] = Size.objects.get(id=size)
+        except Size.DoesNotExist:
+            msg = u"This size id doesn't exist for this provider"
+            self._errors['size'] = self.error_class([msg])
+            del cleaned_data['size']
+        
+        return cleaned_data
+    
     class Meta:
         model  = Node
-        fields = ('provider', 'name')
+        fields = ('provider', 'name', 'location', 'size', 'image')
 
 class UserCreationFormExtended(UserCreationForm):
     def __init__(self, *args, **kwargs):

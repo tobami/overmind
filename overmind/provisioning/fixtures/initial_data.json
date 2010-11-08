@@ -11,7 +11,7 @@
     "model": "provisioning.action",
     "pk": 2,
     "fields": {
-      "name": "flavors",
+      "name": "sizes",
       "show": false
     }
   },

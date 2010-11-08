@@ -19,10 +19,12 @@ def overview(request):
     for n in Node.objects.exclude(environment='Decommissioned'):
         datatable = "<table>"
         fields = [
-            ['uuid', n.uuid],
-            ['created by', n.creator],
-            ['created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+            ['Created by', n.creator],
+            ['Created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
             ['OS image', n.image],
+            ['Location', n.location],
+            ['Size', n.size],
+            ['-----', '--'],
         ]
         for key, val in n.extra_data().items():
             fields.append([key, val])
@@ -110,6 +112,8 @@ def save_provider(form):
             provider = form.save()
             #TODO: defer importing to a work queue
             provider.import_images()
+            provider.import_locations()
+            provider.import_sizes()
             provider.import_nodes()
         except InvalidCredsException:
             # Delete provider if InvalidCreds is raised (by EC2)
