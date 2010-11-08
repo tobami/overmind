@@ -36,7 +36,7 @@
         <div class="section">
             <h3>Providers</h3>
             <ul>{% for provider in provider_list %}
-                <li>{{ provider.name }}{% if perms.provisioning %}<span class="actions"><a href="/provider/{{ provider.id }}/delete/">delete</a>{% endif %}</li>{% endfor %}
+                <li>{{ provider.name }}{% if perms.provisioning %}<span class="actions"><a href='javascript:confirmation("Are you sure you want to delete {{ provider.name }} provider?", "/provider/{{ provider.id }}/delete/");'>delete</a>{% endif %}</li>{% endfor %}
             </ul>
         </div>
     </div>
