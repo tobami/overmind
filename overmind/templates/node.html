@@ -2,13 +2,66 @@
 {% block title %}: New Node{% endblock %}
 {% block script %}
     <script>
+        var toOpacity = 0.3;
+        var duration = 100;
+        
+        function appendImage(data) {
+            var newimage = $.parseJSON(data);
+            var newoption = "<option value=" + newimage['id'] + ">";
+            newoption += newimage['name'] + "</option>";
+            $("#id_image").append(newoption);
+        }
+        
+        function imageSubmit(form) {
+            //transition
+            form.fadeTo(duration, toOpacity);
+            $('#loading').show();
+            
+            //send data to server for validation
+            $.ajax({
+                url: form.attr('action'),
+                type: form.attr('method'),
+                data: form.serialize(),
+                success:function(data){
+                    $('#loading').hide();
+                    // If there are no errors, asume it is a valid JSON image
+                    if (data.indexOf('<p class="error">') == -1 && data.indexOf('<ul class="errorlist">') == -1) {
+                        form.html("New favorite image added");
+                        form.fadeTo(duration,1);
+                        // Fade out "success" text
+                        setTimeout(function() {
+                            form.fadeTo(1000, 0.1).empty().fadeTo(1, 1);
+                        }, 2000);
+                        
+                        appendImage(data);
+                    // There were some errors. Display the form again
+                    } else {
+                        form.html(data);
+                        form.fadeTo(duration,1);
+                    }
+                }
+            });
+        }
+        
+        function getImageForm() {
+            var provider = $("input:radio[name='provider']:checked").val();
+            $('#loading').show();
+            $("form#newimage").load(
+                "image/add/?provider=" + provider, function(responseText) {
+                $('#loading').hide();
+            });
+        }
+        
+        function cancelImageForm() {
+            $("form#newimage").fadeTo(100, 0.1).empty().fadeTo(1, 1);
+        }
+        
         function getNodeForm() {
-            var toOpacity = 0.3;
-            var duration = 100;
             var provider = $("input:radio[name='provider']:checked").val();
             $("form#newnode").fadeTo(duration, toOpacity);
             $('#loading').show();
-            $("form#newnode").load("new/?provider=" + provider, function(responseText) {
+            $("form#newnode").load(
+                "new/?provider=" + provider, function(responseText) {
                 $('#loading').hide();
                 $("form#newnode").fadeTo(duration,1);
             });

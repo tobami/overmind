@@ -5,11 +5,12 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext
 from libcloud.types import InvalidCredsException
 
-from provisioning.models import Action, Provider, Node, get_state
-from provisioning.forms import ProviderForm, NodeForm, ProfileEditForm
+from provisioning.models import Action, Provider, Node, get_state, Image
+from provisioning.forms import ProviderForm, NodeForm, AddImageForm, ProfileEditForm
 from provisioning.forms import UserCreationFormExtended, UserEditForm
 from provisioning.provider_meta import PROVIDERS
 import logging
+import simplejson as json
 
 @login_required
 def overview(request):
@@ -155,17 +156,38 @@ def node(request):
     return render_to_response('node.html', variables)
 
 @permission_required('provisioning.add_node')
+def addimage(request):
+    error = None
+    if request.method == 'POST':
+        form = AddImageForm(request.POST.get("provider"), request.POST)
+        if form.is_valid():
+            img = form.cleaned_data['image']
+            img.favorite = True
+            img.save()
+            favimage = {'name': img.name, 'image_id': img.image_id, 'id': img.id}
+            return HttpResponse(json.dumps(favimage))
+    else:
+        form = AddImageForm(request.GET.get("provider"))
+    return render_to_response('image_form.html', { 'form': form, 'error': error })
+
+@permission_required('provisioning.add_node')
 def newnode(request):
     error = None
+    favcount = 0
     if request.method == 'POST':
         error, form, node = save_new_node(request.POST, request.user)
         if error is None:
             return HttpResponse('<p>success</p>')
     else:
         form = NodeForm(request.GET.get("provider"))
+        favcount = Image.objects.filter(
+            provider=request.GET.get("provider"),
+            favorite=True
+        ).count()
     if error == 'form':
         error = None
-    return render_to_response('node_form.html', { 'form': form, 'error': error })
+    return render_to_response('node_form.html',
+        { 'form': form, 'favcount': favcount, 'error': error })
 
 def save_new_node(data, user):
     provider_id = data.get("provider")

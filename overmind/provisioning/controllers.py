@@ -122,7 +122,7 @@ class ProviderController():
     
     def get_images(self):
         images = self.conn.list_images()
-        #TODO: remove EC2 if block
+        # Hack for Amazon's EC2: only retrieve AMI images
         if self.provider_type.startswith("EC2"):
             images = [image for image in images if image.id.startswith('ami')]
         return images

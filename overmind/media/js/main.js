@@ -28,13 +28,12 @@ function ajaxSubmit(form, redirect) {
             type: formMethod,
             data: formData,
             success:function(data){
+                $('#loading').hide();
                 if (data === "<p>success</p>") {
-                    if (redirect != "none") { window.location = redirect; }
-                    else { return false; }
+                    if (redirect) { window.location = redirect; }
                 }
                 form.data('formstatus','ready');
                 form.html(data);
-                $('#loading').hide();
                 form.fadeTo(duration,1);
             }
         });

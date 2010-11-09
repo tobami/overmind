@@ -226,6 +226,9 @@ class Provider(models.Model):
     def get_images(self):
         return self.image_set.all()
     
+    def get_fav_images(self):
+        return self.image_set.filter(favorite=True)
+    
     def get_locations(self):
         return self.location_set.all()
     
@@ -250,6 +253,7 @@ class Image(models.Model):
     image_id = models.CharField(max_length=20)
     name     = models.CharField(max_length=30)
     provider = models.ForeignKey(Provider)
+    favorite = models.BooleanField(default=False)
     
     def __unicode__(self):
         return self.name

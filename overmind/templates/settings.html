@@ -7,7 +7,6 @@
         }
         
         function formDelete(id) {
-            console.log(id);
             $('form#userform').attr('action', '/accounts/delete/' + id + '/');
             $('form#userform').submit();
         }

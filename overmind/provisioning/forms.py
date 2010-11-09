@@ -27,6 +27,44 @@ class ProviderForm(forms.ModelForm):
         fields = ('name', 'provider_type', 'access_key', 'secret_key')
 
 
+class AddImageForm(forms.Form):
+    provider = forms.ModelChoiceField(
+        queryset = Provider.objects.all(),
+        widget   = forms.HiddenInput,
+    )
+    image_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    favimage1 = forms.CharField(label="Type an image id", required=False)
+    favimage2 = forms.ChoiceField(label="Select an image", choices=[])
+    
+    def __init__(self, provider_id, *args, **kwargs):
+        super(AddImageForm, self).__init__(*args, **kwargs)
+        prov = Provider.objects.get(id=provider_id)
+        self.fields['provider'].initial = prov.id
+        self.fields['favimage2'].choices = []
+        for img in prov.get_images():
+            self.fields['favimage2'].choices += [(img.id, img.name)]
+    
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        image = cleaned_data.get('favimage1')
+        if image != "":
+            try:
+                cleaned_data['image'] = Image.objects.get(
+                    provider=cleaned_data['provider'],
+                    image_id=image
+                )
+            except Image.DoesNotExist:
+                msg = u"Invalid image id"
+                self._errors['favimage1'] = self.error_class([msg])
+        else:
+            cleaned_data['image'] = Image.objects.get(
+                    id=cleaned_data.get('favimage2'))
+        if cleaned_data['image'].favorite:
+            msg = u"This image is already marked as favorite"
+            self._errors['favimage1'] = self.error_class([msg])
+        return cleaned_data
+
+
 class NodeForm(forms.ModelForm):
     provider = forms.ModelChoiceField(
         queryset = Provider.objects.all(),
@@ -60,38 +98,37 @@ class NodeForm(forms.ModelForm):
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
-            for img in prov.get_images():
+            for img in prov.get_fav_images():
                 self.fields['image'].choices += [(img.id, img.name)]
     
-    def clean(self):
-        '''Transform image, location and size ids to proper objects'''
-        cleaned_data = self.cleaned_data
-        image        = cleaned_data.get('image')
-        location     = cleaned_data.get('location')
-        size         = cleaned_data.get('size')
-        
+    def clean_image(self):
+        '''Transform image id to a proper object'''
+        image = self.cleaned_data.get('image')
         try:
-            cleaned_data['image'] = Image.objects.get(id=image)
+            image = Image.objects.get(id=image)
         except Image.DoesNotExist:
             msg = u"This image id doesn't exist for this provider"
             self._errors['image'] = self.error_class([msg])
-            del cleaned_data['image']
-        
+        return image
+    
+    def clean_location(self):
+        location = self.cleaned_data.get('location')
         try:
-            cleaned_data['location'] = Location.objects.get(id=location)
+            location = Location.objects.get(id=location)
         except Location.DoesNotExist:
             msg = u"This location id doesn't exist for this provider"
             self._errors['location'] = self.error_class([msg])
-            del cleaned_data['location']
+        return location
+    
+    def clean_size(self):
+        size = self.cleaned_data.get('size')
         
         try:
-            cleaned_data['size'] = Size.objects.get(id=size)
+            size = Size.objects.get(id=size)
         except Size.DoesNotExist:
             msg = u"This size id doesn't exist for this provider"
             self._errors['size'] = self.error_class([msg])
-            del cleaned_data['size']
-        
-        return cleaned_data
+        return size
     
     class Meta:
         model  = Node

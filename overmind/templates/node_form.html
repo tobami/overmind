@@ -1,3 +1,24 @@
-    {{ form.as_p }}
+    {% for field in form.visible_fields %}
+        {{ field.errors }}
+        <p>{# Include the hidden fields in the form #}
+            {% if forloop.first %}
+                {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+                {% endfor %}
+            {% endif %}
+            {{ field.label_tag }}: {{ field }}
+        </p>{% if field.html_name == "image" %}
+            <p style="text-align:right"><a href="javascript:getImageForm();">Add new image</a></p>
+            <form style="text-align:right" id="newimage" action="image/add/" method="post"></form>
+            <script>
+                $('form#newimage').submit(function() {
+                    imageSubmit($(this));
+                    //prevent form from submitting
+                    return false;
+                });
+            </script>
+        {% endif %}
+    {% endfor %}
+    
     <input type="submit" value="Launch Node" />
     {% if error %}<p class="error">Error: {{ error }}</p>{% endif %}

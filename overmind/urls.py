@@ -21,6 +21,7 @@ urlpatterns += patterns('',
     # Create
     (r'^provider/new/$', 'provisioning.views.newprovider'),
     (r'^node/new/$', 'provisioning.views.newnode'),
+    (r'^node/image/add/$', 'provisioning.views.addimage'),
     # Update
     (r'^provider/update/$',\
         'provisioning.views.updateproviders'),
