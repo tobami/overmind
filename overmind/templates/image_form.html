@@ -1,0 +1,4 @@
+    {{ form.as_p }}
+    <p><input type="submit" value="Add image" /><a href="javascript:cancelImageForm();">Cancel</a></p>
+    {% if error %}<p class="error">Error: {{ error }}</p>{% endif %}
+    
