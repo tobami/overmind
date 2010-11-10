@@ -287,7 +287,7 @@ class Size(models.Model):
     provider  = models.ForeignKey(Provider)
     
     def __unicode__(self):
-        return self.name
+        return "%s (%sMB)" % (self.name, self.ram)
     
     class Meta:
         unique_together  = ('provider', 'size_id')

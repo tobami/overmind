@@ -42,7 +42,7 @@ class AddImageForm(forms.Form):
         self.fields['provider'].initial = prov.id
         self.fields['favimage2'].choices = []
         for img in prov.get_images().order_by('name'):
-            self.fields['favimage2'].choices += [(img.id, img.name)]
+            self.fields['favimage2'].choices += [(img.id, img)]
     
     def clean(self):
         cleaned_data = self.cleaned_data
@@ -88,18 +88,18 @@ class NodeForm(forms.ModelForm):
             self.fields['location'] = forms.ChoiceField()
             for location in prov.get_locations():
                 self.fields['location'].choices += [
-                    (location.id, location.country + " - " + location.name)
+                    (location.id, location)
                 ]
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
             self.fields['size'] = forms.ChoiceField()
             for size in prov.get_sizes():
-                self.fields['size'].choices += [(size.id, size.name)]
+                self.fields['size'].choices += [(size.id, size)]
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
             for img in prov.get_fav_images().order_by('name'):
-                self.fields['image'].choices += [(img.id, img.name)]
+                self.fields['image'].choices += [(img.id, img)]
     
     def clean_image(self):
         '''Transform image id to a proper object'''
