@@ -68,6 +68,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfResponseMiddleware',
 )
 
+if DEBUG:
+    MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    INTERNAL_IPS = ('127.0.0.1',)
+
 ROOT_URLCONF = 'overmind.urls'
 
 TEMPLATE_DIRS = (
@@ -82,6 +86,9 @@ INSTALLED_APPS = (
     'overmind.provisioning',
     'overmind.api',
 )
+
+if DEBUG:
+    INSTALLED_APPS += ('debug_toolbar',)
 
 PUBLIC_KEY_FILE = "id_rsa.pub"
 PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()

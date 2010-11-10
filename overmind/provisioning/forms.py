@@ -41,7 +41,7 @@ class AddImageForm(forms.Form):
         prov = Provider.objects.get(id=provider_id)
         self.fields['provider'].initial = prov.id
         self.fields['favimage2'].choices = []
-        for img in prov.get_images():
+        for img in prov.get_images().order_by('name'):
             self.fields['favimage2'].choices += [(img.id, img.name)]
     
     def clean(self):
@@ -98,7 +98,7 @@ class NodeForm(forms.ModelForm):
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
             self.fields['image'] = forms.ChoiceField()
-            for img in prov.get_fav_images():
+            for img in prov.get_fav_images().order_by('name'):
                 self.fields['image'].choices += [(img.id, img.name)]
     
     def clean_image(self):
