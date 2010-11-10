@@ -2,6 +2,12 @@
 Overmind Change Log
 ===================
 
+Next Version
+------------
+
+* Renaming of realm=>location and flavor=>sizes
+* Saving of Images, Locations and Sizes
+
 
 Version 0.1.0, October 14, 2010
 --------------------------------

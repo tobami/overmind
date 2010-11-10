@@ -273,19 +273,17 @@ def adduser(request):
 @login_required
 def edituser(request, id):
     edit_user = get_object_or_404(User, id=id)
-    user_is_admin = False
-    if request.user.has_perm('auth.change_user'):
-        user_is_admin = True
-    elif request.user.id != int(id):
+    if not request.user.has_perm('auth.change_user') and request.user.id != int(id):
         # If user doesn't have auth permissions and he/she is not editting
         # his/her own profile don't allow the operation
         return HttpResponse("<p>Your don't have permissions to edit users</p>")
     
     if request.method == 'POST':
-        if user_is_admin:
-            group = request.POST.get('group')
-            if group != "1" and count_admin_users() <= 1:
-                #if id of group is not Admin and there is only one admin user
+        if request.user.has_perm('auth.change_user'):
+            admin   = Group.objects.get(name='Admin')
+            oldrole = admin if admin in edit_user.groups.all() else False
+            newrole = Group.objects.get(id=request.POST.get('group'))
+            if oldrole is admin and newrole != admin and count_admin_users() <= 1:
                 errormsg = "<p>Not allowed: you cannot remove admin rights"
                 errormsg += " from the only admin user</p>"
                 return HttpResponse(errormsg)
@@ -297,7 +295,7 @@ def edituser(request, id):
             form.save()
             return HttpResponse('<p>success</p>')
     else:
-        if user_is_admin:
+        if request.user.has_perm('auth.change_user'):
             form = UserEditForm(instance=edit_user)
         else:
             form = ProfileEditForm(instance=edit_user)
