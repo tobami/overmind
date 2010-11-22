@@ -161,16 +161,17 @@ class UserCreationFormExtended(UserCreationForm):
         return user
 
 class BasicEditForm(forms.ModelForm):
-    password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
+    password1 = forms.CharField(
+        label="Password", widget=forms.PasswordInput, required=False)
     password2 = forms.CharField(
-        label="Password confirmation", widget=forms.PasswordInput)
+        label="Password confirmation", widget=forms.PasswordInput, required=False)
     
     def __init__(self, *args, **kwargs):
         super(BasicEditForm, self).__init__(*args, **kwargs)
         self.fields['first_name'].required = True
     
     def clean_password2(self):
-        password1 = self.cleaned_data.get("password1", "")
+        password1 = self.cleaned_data["password1"]
         password2 = self.cleaned_data["password2"]
         if password1 != password2:
             raise forms.ValidationError("The two password fields didn't match.")
@@ -178,7 +179,8 @@ class BasicEditForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super(BasicEditForm, self).save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
+        if self.cleaned_data["password1"] != "":
+            user.set_password(self.cleaned_data["password1"])
         
         if commit:
             user.save()
