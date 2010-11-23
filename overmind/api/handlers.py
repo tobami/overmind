@@ -123,7 +123,7 @@ class NodeHandler(BaseHandler):
         attrs = self.flatten_dict(request.data)
         
         # Modify REST's "provider_id" to "provider" (expected form field)
-        data = copy.deepcopy(request.POST)
+        data = copy.deepcopy(attrs)
         data['provider'] = data.get('provider_id','')
         if 'provider_id' in data: del data['provider_id']
         
