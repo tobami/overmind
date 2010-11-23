@@ -54,8 +54,7 @@ class AddImageForm(forms.Form):
                     image_id=image
                 )
             except Image.DoesNotExist:
-                msg = u"Invalid image id"
-                self._errors['favimage1'] = self.error_class([msg])
+                raise forms.ValidationError(u"Invalid image id")
         else:
             cleaned_data['image'] = Image.objects.get(
                     id=cleaned_data.get('favimage2'))
