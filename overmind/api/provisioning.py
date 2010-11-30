@@ -2,9 +2,9 @@ from piston.handler import BaseHandler
 from piston.utils import rc
 from libcloud.types import InvalidCredsException
 
-from provisioning.provider_meta import PROVIDERS
-from provisioning.models import Provider, Node, get_state
-from provisioning.views import save_new_node, save_new_provider, update_provider
+from overmind.provisioning.provider_meta import PROVIDERS
+from overmind.provisioning.models import Provider, Image, Node, get_state
+from overmind.provisioning.views import save_new_node, save_new_provider, update_provider
 import copy, logging
 
 # Unit tests are not working for HttpBasicAuthentication
@@ -110,9 +110,45 @@ class ProviderHandler(BaseHandler):
             return rc.NOT_FOUND
 
 
+class ImageHandler(BaseHandler):
+    fields = ('id', 'image_id', 'name', 'favorite')
+    model = Image
+    allowed_methods = ('GET',)
+    
+    def read(self, request, *args, **kwargs):
+        id = kwargs.get('id')
+        provider = Provider.objects.get(id=kwargs.get('provider_id'))
+        if id is None:
+            image_id = request.GET.get('image_id')
+            name = request.GET.get('name')
+            if image_id is not None:
+                try:
+                    return self.model.objects.get(
+                        provider=provider,
+                        image_id=image_id
+                    )
+                except self.model.DoesNotExist:
+                    return rc.NOT_FOUND
+            elif name is not None:
+                try:
+                    return self.model.objects.get(
+                        provider=provider,
+                        name=name
+                    )
+                except self.model.DoesNotExist:
+                    return rc.NOT_FOUND
+            else:
+                return self.model.objects.filter(provider=provider)
+        else:
+            try:
+                return self.model.objects.get(id=id)
+            except self.model.DoesNotExist:
+                return rc.NOT_FOUND
+
+
 class NodeHandler(BaseHandler):
-    fields = ('id', 'name', ('provider', ('id', 'name', 'provider_type')),
-        'uuid', 'public_ip', 'state', 'environment', 'extra_data')
+    fields = ('id', 'name', 'uuid', 'public_ip', 'state', 'environment',
+        'extra_data', 'provider')
     model = Node
     
     def create(self, request):
