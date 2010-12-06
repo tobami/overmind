@@ -6,10 +6,7 @@
         var duration = 100;
         
         function appendImage(data) {
-            var newimage = $.parseJSON(data);
-            var newoption = "<option value=" + newimage['id'] + ">";
-            newoption += newimage['name'] + "</option>";
-            $("#id_image").append(newoption);
+             getNodeForm();
         }
         
         function imageSubmit(form) {
@@ -26,6 +23,8 @@
                     $('#loading').hide();
                     // If there are no errors, asume it is a valid JSON image
                     if (data.indexOf('<p class="error">') == -1 && data.indexOf('<ul class="errorlist">') == -1) {
+                        //TODO:Move success message outside the form so that
+                        // it doesn't disappear on ajax refresh
                         form.html("New favorite image added");
                         form.fadeTo(duration,1);
                         // Fade out "success" text

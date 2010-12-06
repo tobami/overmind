@@ -34,7 +34,7 @@ class AddImageForm(forms.Form):
     )
     image_id = forms.CharField(widget=forms.HiddenInput, required=False)
     favimage1 = forms.CharField(label="Type an image id", required=False)
-    favimage2 = forms.ChoiceField(label="Select an image", choices=[])
+    favimage2 = forms.ChoiceField(label="or select an image", choices=[])
     
     def __init__(self, provider_id, *args, **kwargs):
         super(AddImageForm, self).__init__(*args, **kwargs)
@@ -96,7 +96,7 @@ class NodeForm(forms.ModelForm):
                 self.fields['size'].choices += [(size.id, size)]
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
-            self.fields['image'] = forms.ChoiceField()
+            self.fields['image'] = forms.ChoiceField(widget=forms.RadioSelect())
             for img in prov.get_fav_images().order_by('name'):
                 self.fields['image'].choices += [(img.id, img)]
     

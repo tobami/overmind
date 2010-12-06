@@ -1,7 +1,4 @@
 from django.conf.urls.defaults import *
-from piston.resource import Resource
-from piston.authentication import HttpBasicAuthentication
-
 from api.provisioning import ProviderHandler, NodeHandler, ImageHandler
 import api
 from urls import CsrfExemptResource

@@ -89,13 +89,17 @@ header p a:hover { color: #fff; }
     span.actions { float: right; text-align: right; }
     span.actions a { margin-left: 5px; font-size: smaller; }
     
-form { width: 32em; }
-form p { padding: 0.3em; }
-form p input[type="text"], form p input[type="password"], form p select {
-    float: right; width: 20em; padding: 1px; 
+form { width: 34em; }
+form#newimage { width: 32em; float: right; }
+form div, form p { padding: 0.3em; }
+form input[type="text"], form input[type="password"], form select {
+    margin-left: 1em; float: right; width: 22em; padding: 1px; 
 }
-form ul { text-align: right; width: 20em; padding: 1px; }
-form p select { width: 20.4em; }
+form input[type="text"], form input[type="password"] { width: 21.5em; }
+
+form div ul { width: 21.5em; padding: 1px; float: right; clear: right; }
+form div ul li { padding-left: 1em; }
+form p a { margin-left: 1em; }
 
 div#sidebar {
     display: table-cell;
