@@ -70,6 +70,13 @@ class NodeForm(forms.ModelForm):
         widget   = forms.HiddenInput,
     )
     
+    location = forms.ModelChoiceField(
+        queryset=None,widget=forms.HiddenInput,required=False)
+    size     = forms.ModelChoiceField(
+        queryset=None,widget=forms.HiddenInput,required=False)
+    image    = forms.ModelChoiceField(
+        queryset=None,widget=forms.HiddenInput,required=False)
+    
     def __init__(self, provider_id, *args, **kwargs):
         super(NodeForm, self).__init__(*args, **kwargs)
         prov = Provider.objects.get(id=provider_id)
@@ -102,6 +109,7 @@ class NodeForm(forms.ModelForm):
     
     def clean_image(self):
         '''Transform image id to a proper object'''
+        if not self.fields['image'].required: return None
         image = self.cleaned_data.get('image')
         try:
             image = Image.objects.get(id=image)
@@ -111,6 +119,7 @@ class NodeForm(forms.ModelForm):
         return image
     
     def clean_location(self):
+        if not self.fields['location'].required: return None
         location = self.cleaned_data.get('location')
         try:
             location = Location.objects.get(id=location)
@@ -120,6 +129,7 @@ class NodeForm(forms.ModelForm):
         return location
     
     def clean_size(self):
+        if not self.fields['size'].required: return None
         size = self.cleaned_data.get('size')
         
         try:

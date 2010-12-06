@@ -41,12 +41,15 @@ class ProviderController():
     
     def create_node(self, form):
         name   = form.cleaned_data['name']
-        image  = NodeImage(
-            form.cleaned_data.get('image').image_id, '', self.conn)
-        size = NodeSize(form.cleaned_data.get('size').size_id, '', '', '',
-            None, None, driver=self.conn)
-        location  = NodeLocation(
-            form.cleaned_data.get('location').location_id, '', '', self.conn)
+        image = form.cleaned_data.get('image')
+        if image:
+            image  = NodeImage(image, '', self.conn)
+        size = form.cleaned_data.get('size')
+        if size:
+            size = NodeSize(size, '', '', '', None, None, driver=self.conn)
+        location = form.cleaned_data.get('location')
+        if location:
+            location  = NodeLocation(location, '', '', self.conn)
         
         # Choose node creation strategy
         features = self.conn.features.get('create_node', [])

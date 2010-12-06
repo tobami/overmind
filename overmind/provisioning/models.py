@@ -153,6 +153,7 @@ class Provider(models.Model):
         some providers have thousands of images, which take a long time
         to save to the DB as separated transactions
         '''
+        if not self.supports('images'): return
         self.create_connection()
         for image in self.conn.get_images():
             try:
@@ -173,6 +174,7 @@ class Provider(models.Model):
     @transaction.commit_on_success()
     def import_locations(self):
         '''Get all locations from this provider and store them in the DB'''
+        if not self.supports('locations'): return
         self.create_connection()
         for location in self.conn.get_locations():
             try:
@@ -194,6 +196,7 @@ class Provider(models.Model):
     @transaction.commit_on_success()
     def import_sizes(self):
         '''Get all sizes from this provider and store them in the DB'''
+        if not self.supports('sizes'): return
         self.create_connection()
         for size in self.conn.get_sizes():
             try:

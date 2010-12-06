@@ -191,7 +191,6 @@ def newnode(request):
 
 def save_new_node(data, user):
     provider_id = data.get("provider")
-    
     if not provider_id:
         return 'Incorrect provider id', None, None
     error = None
