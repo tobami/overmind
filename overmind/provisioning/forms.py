@@ -123,9 +123,11 @@ class NodeForm(forms.ModelForm):
             images = prov.get_fav_images().order_by('name')
             self.fields['image'] = forms.ModelChoiceField(
                 queryset=images,
-                initial=images[0],
+                empty_label=None,
                 widget=forms.RadioSelect(renderer=CustomRadioFieldRenderer)
             )
+            if len(images):
+                self.fields['image'].initial = images[0]
     
     class Meta:
         model  = Node

@@ -100,8 +100,7 @@ form div ul { width: 21.5em; padding: 1px; float: right; clear: right; }
 form div ul li { padding-left: 1em; }
 form p a { margin-left: 1em; }
 li a.imgremove {
-    color: #DC000C; float: right; text-decoration: none; }
-/* , a.img_remove:visited { color: red; text-align: right; } */
+    color: #DC000C; margin-left: 0.5em; float: right; text-decoration: none; }
 
 div#sidebar {
     display: table-cell;
@@ -162,8 +161,8 @@ a#createuser { margin: 1em 7em 3em 7em; display: block; width: 10em; }
     width:80px;
     height: 80px;
     position: fixed;
-    top: 36%;
-    left: 12%;
+    top: 220px;
+    left: 80px;
     background:url(/media/images/ajax-loader.gif) no-repeat center;
     text-align:center;
     padding:10px;
