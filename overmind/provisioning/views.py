@@ -171,6 +171,20 @@ def addimage(request):
     return render_to_response('image_form.html', { 'form': form, 'error': error })
 
 @permission_required('provisioning.add_node')
+def removeimage(request, image_id):
+    if request.method == 'POST':
+        try:
+            image = Image.objects.get(id=image_id)
+            image.favorite = False
+            image.save()
+            return HttpResponse("<p>SUCCESS</p>" % image)
+        except Image.DoesNotExist:
+            error = "<p>Image id %s does not exist</p>" % image_id
+    else:
+        error = "<p>Only POST Allowed</p>"
+    return HttpResponse(error)
+
+@permission_required('provisioning.add_node')
 def newnode(request):
     error = None
     favcount = 0

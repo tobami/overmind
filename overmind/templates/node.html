@@ -5,6 +5,17 @@
         var toOpacity = 0.3;
         var duration = 100;
         
+        function removeImage(id) {
+            $.ajax({
+                url: 'image/' + id + '/remove/',
+                type: 'POST',
+//                 type: 'DELETE',
+                success: function(result) {
+                    getNodeForm();
+                }
+            });
+        }
+        
         function appendImage(data) {
              getNodeForm();
         }

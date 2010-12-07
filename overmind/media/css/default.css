@@ -52,8 +52,7 @@ header nav { display: table-cell; }
     }
 
 header p { color: #AAA; position: absolute; top: 0; margin-top: 2px; }
-header p a { color: #AAA; }
-header p a:visited { color: #AAA; }
+header p a, header p a:visited { color: #AAA; }
 header p a:hover { color: #fff; }
 
 #content {
@@ -100,6 +99,9 @@ form input[type="text"], form input[type="password"] { width: 21.5em; }
 form div ul { width: 21.5em; padding: 1px; float: right; clear: right; }
 form div ul li { padding-left: 1em; }
 form p a { margin-left: 1em; }
+li a.imgremove {
+    color: #DC000C; float: right; text-decoration: none; }
+/* , a.img_remove:visited { color: red; text-align: right; } */
 
 div#sidebar {
     display: table-cell;

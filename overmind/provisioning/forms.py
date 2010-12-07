@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import UserCreationForm
+from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
 
 from provisioning.models import Provider, Node, Image, Location, Size
 from provisioning.provider_meta import PROVIDERS
@@ -64,6 +66,16 @@ class AddImageForm(forms.Form):
         return cleaned_data
 
 
+class CustomRadioFieldRenderer(forms.widgets.RadioFieldRenderer):
+    def __init__(self, *args, **kwargs):
+        super(CustomRadioFieldRenderer, self).__init__(*args, **kwargs)
+    
+    def render(self):
+        """Outputs a <ul> for this set of radio fields."""
+        return mark_safe(u'<ul>\n%s\n</ul>' % u'\n'.join([u'<li class="clearfix">%s<a class="imgremove" href="javascript:removeImage(\'%s\');">x</a></li>'
+            % (force_unicode(w), w.choice_value) for w in self]))
+
+
 class NodeForm(forms.ModelForm):
     provider = forms.ModelChoiceField(
         queryset = Provider.objects.all(),
@@ -91,53 +103,29 @@ class NodeForm(forms.ModelForm):
         
         # Add location field
         if 'location' in provider_info.get('form_fields', []):
-            self.fields['location'] = forms.ChoiceField()
-            for location in prov.get_locations():
-                self.fields['location'].choices += [
-                    (location.id, location)
-                ]
+            locs = prov.get_locations()
+            self.fields['location'] = forms.ModelChoiceField(
+                queryset=locs,
+                initial=locs[0],
+                widget=forms.RadioSelect(),
+            )
+        
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
-            self.fields['size'] = forms.ChoiceField()
-            for size in prov.get_sizes():
-                self.fields['size'].choices += [(size.id, size)]
+            sizes = prov.get_sizes()
+            self.fields['size'] = forms.ModelChoiceField(
+                queryset=sizes,
+                initial=sizes[0],
+            )
+        
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
-            self.fields['image'] = forms.ChoiceField(widget=forms.RadioSelect())
-            for img in prov.get_fav_images().order_by('name'):
-                self.fields['image'].choices += [(img.id, img)]
-    
-    def clean_image(self):
-        '''Transform image id to a proper object'''
-        if not self.fields['image'].required: return None
-        image = self.cleaned_data.get('image')
-        try:
-            image = Image.objects.get(id=image)
-        except Image.DoesNotExist:
-            msg = u"This image id doesn't exist for this provider"
-            self._errors['image'] = self.error_class([msg])
-        return image
-    
-    def clean_location(self):
-        if not self.fields['location'].required: return None
-        location = self.cleaned_data.get('location')
-        try:
-            location = Location.objects.get(id=location)
-        except Location.DoesNotExist:
-            msg = u"This location id doesn't exist for this provider"
-            self._errors['location'] = self.error_class([msg])
-        return location
-    
-    def clean_size(self):
-        if not self.fields['size'].required: return None
-        size = self.cleaned_data.get('size')
-        
-        try:
-            size = Size.objects.get(id=size)
-        except Size.DoesNotExist:
-            msg = u"This size id doesn't exist for this provider"
-            self._errors['size'] = self.error_class([msg])
-        return size
+            images = prov.get_fav_images().order_by('name')
+            self.fields['image'] = forms.ModelChoiceField(
+                queryset=images,
+                initial=images[0],
+                widget=forms.RadioSelect(renderer=CustomRadioFieldRenderer)
+            )
     
     class Meta:
         model  = Node
