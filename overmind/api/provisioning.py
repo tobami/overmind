@@ -3,7 +3,8 @@ from piston.utils import rc
 from libcloud.types import InvalidCredsException
 
 from overmind.provisioning.provider_meta import PROVIDERS
-from overmind.provisioning.models import Provider, Image, Node, get_state
+from overmind.provisioning.models import Provider, Image, Location, Size, Node
+from overmind.provisioning.models import get_state
 from overmind.provisioning.views import save_new_node, save_new_provider, update_provider
 import copy, logging
 
@@ -146,9 +147,21 @@ class ImageHandler(BaseHandler):
                 return rc.NOT_FOUND
 
 
+class LocationHandler(BaseHandler):
+    fields = ('id', 'location_id', 'name')
+    model = Location
+    allowed_methods = ('GET',)
+
+
+class SizeHandler(BaseHandler):
+    fields = ('id', 'size_id', 'name')
+    model = Size
+    allowed_methods = ('GET',)
+
+
 class NodeHandler(BaseHandler):
-    fields = ('id', 'name', 'node_id', 'public_ip', 'state', 'environment',
-        'extra_data', 'provider')
+    fields = ('id', 'name', 'node_id', 'image', 'location', 'size', 'public_ip',
+        'state', 'environment', 'extra_data', 'provider')
     model = Node
     
     def create(self, request):

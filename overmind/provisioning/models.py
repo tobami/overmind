@@ -112,10 +112,10 @@ class Provider(models.Model):
                         image_id=node.extra.get('imageId'), provider=self)
                 except Image.DoesNotExist:
                     n.image = None
-                try:
-                    n.location = Location.objects.get(
-                        location_id=node.extra.get('availability'), provider=self)
-                except Location.DoesNotExist:
+                locs = Location.objects.filter(provider=self)
+                if len(locs) == 1:
+                    n.location = locs[0]
+                else:
                     n.location = None
                 try:
                     size_id = node.extra.get('instancetype') or\
