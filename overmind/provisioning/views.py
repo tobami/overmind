@@ -234,6 +234,8 @@ def save_new_node(data, user):
                     try:
                         node.save()
                         logging.info('New node created %s' % node)
+                        if node.image is not None:
+                            node.image.save()
                         return None, form, node
                     except Exception, e:
                         error = e

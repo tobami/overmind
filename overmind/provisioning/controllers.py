@@ -43,13 +43,13 @@ class ProviderController():
         name   = form.cleaned_data['name']
         image = form.cleaned_data.get('image')
         if image:
-            image  = NodeImage(image, '', self.conn)
+            image  = NodeImage(image.image_id, '', self.conn)
         size = form.cleaned_data.get('size')
         if size:
-            size = NodeSize(size, '', '', '', None, None, driver=self.conn)
+            size = NodeSize(size.size_id, '', '', '', None, None, driver=self.conn)
         location = form.cleaned_data.get('location')
         if location:
-            location  = NodeLocation(location, '', '', self.conn)
+            location  = NodeLocation(location.location_id, '', '', self.conn)
         
         # Choose node creation strategy
         features = self.conn.features.get('create_node', [])
@@ -81,7 +81,7 @@ class ProviderController():
                 )
             else:
                 # Create node without any extra steps nor parameters
-                logging.debug("Provider feature: none. call create_node")
+                logging.debug("Provider feature: none. Call create_node")
                 # Include all plugin form fields in the argument dict
                 args = copy.deepcopy(form.cleaned_data)
                 # Remove unneeded fields
@@ -89,7 +89,8 @@ class ProviderController():
                     if field in args:
                         del args[field]#Avoid colissions with default args
                 args[str(self.extra_param_name)] = str(self.extra_param_value)
-                
+                print "calling conn.create_node..."
+                print image
                 node = self.conn.create_node(
                     name=name, image=image, size=size, location=location, **args
                 )

@@ -98,7 +98,8 @@ form input[type="text"], form input[type="password"] { width: 21.5em; }
 
 form div ul { width: 21.5em; padding: 1px; float: right; clear: right; }
 form div ul li { padding-left: 1em; }
-form p a { margin-left: 1em; }
+form p a { margin-left: 1em; font-size: 90%; }
+
 li a.imgremove {
     color: #DC000C; margin-left: 0.5em; float: right; text-decoration: none; }
 

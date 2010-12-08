@@ -230,7 +230,7 @@ class Provider(models.Model):
         return self.image_set.all()
     
     def get_fav_images(self):
-        return self.image_set.filter(favorite=True)
+        return self.image_set.filter(favorite=True).order_by('-last_used')
     
     def get_locations(self):
         return self.location_set.all()
@@ -253,10 +253,11 @@ class Provider(models.Model):
 
 class Image(models.Model):
     '''OS image model'''
-    image_id = models.CharField(max_length=20)
-    name     = models.CharField(max_length=30)
-    provider = models.ForeignKey(Provider)
-    favorite = models.BooleanField(default=False)
+    image_id  = models.CharField(max_length=20)
+    name      = models.CharField(max_length=30)
+    provider  = models.ForeignKey(Provider)
+    favorite  = models.BooleanField(default=False)
+    last_used = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
         return self.name
@@ -382,6 +383,17 @@ class Node(models.Model):
             counter += 1
             newname = "DECOM" + str(counter) + "-" + self.name
         self.name = newname
+        # Modify uuid to free it for future use
+        newuuid = "DECOM" + str(counter) + "-" + self.uuid
+        while(len(Node.objects.filter(
+                provider=self.provider,uuid=newuuid
+            ).exclude(
+                uuid=self.uuid
+            ))):
+            counter += 1
+            newuuid = "DECOM" + str(counter) + "-" + self.uuid
+        self.uuid = newuuid
+        
         # Mark as decommissioned and save
         self.environment = 'Decommissioned'
         self.save()

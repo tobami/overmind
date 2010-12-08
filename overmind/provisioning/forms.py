@@ -120,7 +120,7 @@ class NodeForm(forms.ModelForm):
         
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
-            images = prov.get_fav_images().order_by('name')
+            images = prov.get_fav_images()
             self.fields['image'] = forms.ModelChoiceField(
                 queryset=images,
                 empty_label=None,
