@@ -28,8 +28,10 @@ def overview(request):
             ['Size', n.size],
         ]
         if n.size and n.size.price:
-            fields.append(['Price', n.size.price])
+            fields.append(['Price', n.size.price + ' $/hour'])
         fields.append(['-----', '--'])
+        if n.private_ip:
+            fields.append(['private_ip', n.private_ip])
         
         for key, val in n.extra_data().items():
             fields.append([key, val])
@@ -230,14 +232,16 @@ def save_new_node(data, user):
                 error, data_from_provider = provider.create_node(form)
                 if error is None:
                     node = form.save(commit = False)
-                    node.node_id   = data_from_provider['node_id']
-                    node.public_ip = data_from_provider['public_ip']
-                    node.state     = get_state(data_from_provider['state'])
+                    node.node_id    = data_from_provider['node_id']
+                    node.public_ip  = data_from_provider['public_ip']
+                    node.private_ip = data_from_provider.get('private_ip', '')
+                    node.state      = get_state(data_from_provider['state'])
+                    node.creator    = user.username
                     node.save_extra_data(data_from_provider.get('extra', ''))
-                    node.creator   = user.username
                     try:
                         node.save()
                         logging.info('New node created %s' % node)
+                        # Mark image as recently used by saving it
                         if node.image is not None:
                             node.image.save()
                         return None, form, node

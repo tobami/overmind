@@ -126,6 +126,8 @@ class Provider(models.Model):
             
             # Import/Update node info
             n.public_ip = node.public_ip[0]
+            if len(node.private_ip):
+                n.private_ip = node.private_ip[0]
             n.state = get_state(node.state)
             n.save_extra_data(node.extra)
             n.save()
@@ -328,7 +330,7 @@ class Node(models.Model):
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
     public_ip   = models.CharField(max_length=25)
-    internal_ip = models.CharField(max_length=25, blank=True)
+    private_ip = models.CharField(max_length=25, blank=True)
     hostname    = models.CharField(max_length=25, blank=True)
     _extra_data = models.TextField(blank=True)
     

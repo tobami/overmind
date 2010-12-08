@@ -90,7 +90,7 @@ INSTALLED_APPS = (
 if DEBUG:
     INSTALLED_APPS += ('debug_toolbar',)
 
-PUBLIC_KEY_FILE = "id_rsa.pub"
+PUBLIC_KEY_FILE = "overmind.pem"
 PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()
 
 # Configure logging

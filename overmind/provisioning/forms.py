@@ -112,7 +112,7 @@ class NodeForm(forms.ModelForm):
         
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
-            sizes = prov.get_sizes()
+            sizes = prov.get_sizes().order_by('price')
             self.fields['size'] = forms.ModelChoiceField(
                 queryset=sizes,
                 initial=sizes[0],
