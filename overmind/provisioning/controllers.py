@@ -100,24 +100,24 @@ class ProviderController():
         
         return None, {
             'public_ip': node.public_ip[0],
-            'uuid': node.uuid,
+            'node_id': node.id,
             'state': node.state,
             'extra': node.extra,
         }
     
     def reboot_node(self, node):
         #TODO: this is braindead
-        #We should be able to do self.conn.get_node(uuid=uuid)
+        #We should be able to do self.conn.get_node(id=node_id)
         for n in self.conn.list_nodes():
-            if n.uuid == node.uuid:
+            if n.id == node.node_id:
                 return self.conn.reboot_node(n)
         return False
     
     def destroy_node(self, node):
         #TODO: this is braindead
-        #We should be able to do self.conn.get_node(uuid=uuid)
+        #We should be able to do self.conn.get_node(id=node_id)
         for n in self.conn.list_nodes():
-            if n.uuid == node.uuid:
+            if n.id == node.node_id:
                 return self.conn.destroy_node(n)
         return False
     

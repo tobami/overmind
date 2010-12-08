@@ -147,7 +147,7 @@ class ImageHandler(BaseHandler):
 
 
 class NodeHandler(BaseHandler):
-    fields = ('id', 'name', 'uuid', 'public_ip', 'state', 'environment',
+    fields = ('id', 'name', 'node_id', 'public_ip', 'state', 'environment',
         'extra_data', 'provider')
     model = Node
     

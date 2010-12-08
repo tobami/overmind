@@ -97,13 +97,13 @@ class Provider(models.Model):
         # Import nodes not present in the DB
         for node in nodes:
             try:
-                n = Node.objects.get(provider=self, uuid=node.uuid)
+                n = Node.objects.get(provider=self, node_id=node.id)
             except Node.DoesNotExist:
                 # Create a new Node
                 logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
                     name      = node.name,
-                    uuid      = node.uuid,
+                    node_id      = node.id,
                     provider  = self,
                     creator   = 'imported by Overmind',
                 )
@@ -136,7 +136,7 @@ class Provider(models.Model):
             ).exclude(environment='Decommissioned'):
             found = False
             for node in nodes:
-                if n.uuid == node.uuid:
+                if n.node_id == node.id:
                     found = True
                     break
             # This node was probably removed from the provider by another tool
@@ -318,7 +318,7 @@ class Node(models.Model):
     )
     # Standard node fields
     name        = models.CharField(max_length=25)
-    uuid        = models.CharField(max_length=50)
+    node_id        = models.CharField(max_length=50)
     provider    = models.ForeignKey(Provider)
     image       = models.ForeignKey(Image, null=True, blank=True)
     location    = models.ForeignKey(Location, null=True, blank=True)
@@ -340,10 +340,10 @@ class Node(models.Model):
     timestamp   = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together  = (('provider', 'name'), ('provider', 'uuid'))
+        unique_together  = (('provider', 'name'), ('provider', 'node_id'))
     
     def __unicode__(self):
-        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.uuid + ">"
+        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.node_id + ">"
     
     def save_extra_data(self, data):
         self._extra_data = json.dumps(data)
@@ -383,16 +383,16 @@ class Node(models.Model):
             counter += 1
             newname = "DECOM" + str(counter) + "-" + self.name
         self.name = newname
-        # Modify uuid to free it for future use
-        newuuid = "DECOM" + str(counter) + "-" + self.uuid
+        # Modify node_id to free it for future use
+        new_node_id = "DECOM" + str(counter) + "-" + self.node_id
         while(len(Node.objects.filter(
-                provider=self.provider,uuid=newuuid
+                provider=self.provider,node_id=new_node_id
             ).exclude(
-                uuid=self.uuid
+                node_id=self.node_id
             ))):
             counter += 1
-            newuuid = "DECOM" + str(counter) + "-" + self.uuid
-        self.uuid = newuuid
+            new_node_id = "DECOM" + str(counter) + "-" + self.node_id
+        self.node_id = new_node_id
         
         # Mark as decommissioned and save
         self.environment = 'Decommissioned'

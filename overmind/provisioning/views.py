@@ -22,11 +22,15 @@ def overview(request):
         fields = [
             ['Created by', n.creator],
             ['Created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+            ['Node ID', n.node_id],
             ['OS image', n.image],
             ['Location', n.location],
             ['Size', n.size],
-            ['-----', '--'],
         ]
+        if n.size and n.size.price:
+            fields.append(['Price', n.size.price])
+        fields.append(['-----', '--'])
+        
         for key, val in n.extra_data().items():
             fields.append([key, val])
         
@@ -226,7 +230,7 @@ def save_new_node(data, user):
                 error, data_from_provider = provider.create_node(form)
                 if error is None:
                     node = form.save(commit = False)
-                    node.uuid      = data_from_provider['uuid']
+                    node.node_id      = data_from_provider['id']
                     node.public_ip = data_from_provider['public_ip']
                     node.state     = get_state(data_from_provider['state'])
                     node.save_extra_data(data_from_provider.get('extra', ''))

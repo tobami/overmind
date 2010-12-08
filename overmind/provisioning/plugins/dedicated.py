@@ -43,7 +43,7 @@ class Driver(NodeDriver):
         ip = kwargs.get('ip', '')
         self._validate_ip(ip)
         
-        # Return Node object (IP serves as uuid feed)
+        # Return Node object (IP serves as id feed)
         n = Node(id=ip.replace(".",""),
                  name=kwargs.get('name'),
                  state=NodeState.RUNNING,
