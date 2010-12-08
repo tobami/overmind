@@ -1,5 +1,5 @@
 from libcloud import types
-from libcloud.base import NodeAuthPassword, NodeAuthSSHKey
+from libcloud.base import NodeAuthPassword, NodeAuthSSHKey, Node
 from libcloud.base import NodeImage, NodeSize, NodeLocation
 from libcloud.providers import get_driver
 from libcloud.deployment import SSHKeyDeployment
@@ -106,20 +106,12 @@ class ProviderController():
         }
     
     def reboot_node(self, node):
-        #TODO: this is braindead
-        #We should be able to do self.conn.get_node(id=node_id)
-        for n in self.conn.list_nodes():
-            if n.id == node.node_id:
-                return self.conn.reboot_node(n)
-        return False
+        '''Reboots a node using node.node_id and self.conn'''
+        return self.conn.reboot_node(Node(node.node_id,'','','','',self.conn))
     
     def destroy_node(self, node):
-        #TODO: this is braindead
-        #We should be able to do self.conn.get_node(id=node_id)
-        for n in self.conn.list_nodes():
-            if n.id == node.node_id:
-                return self.conn.destroy_node(n)
-        return False
+        '''Destroys a node using node.node_id and self.conn'''
+        return self.conn.destroy_node(Node(node.node_id,'','','','',self.conn))
     
     def get_nodes(self):
         return self.conn.list_nodes()

@@ -230,7 +230,7 @@ def save_new_node(data, user):
                 error, data_from_provider = provider.create_node(form)
                 if error is None:
                     node = form.save(commit = False)
-                    node.node_id      = data_from_provider['id']
+                    node.node_id   = data_from_provider['node_id']
                     node.public_ip = data_from_provider['public_ip']
                     node.state     = get_state(data_from_provider['state'])
                     node.save_extra_data(data_from_provider.get('extra', ''))

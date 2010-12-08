@@ -103,7 +103,7 @@ class Provider(models.Model):
                 logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
                     name      = node.name,
-                    node_id      = node.id,
+                    node_id   = node.id,
                     provider  = self,
                     creator   = 'imported by Overmind',
                 )
@@ -355,7 +355,15 @@ class Node(models.Model):
     
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
-        return self.provider.reboot_node(self)
+        if not self.provider.supports('reboot'):
+            return True
+        
+        ret = self.provider.reboot_node(self)
+        if ret:
+            logging.debug('Rebooted %s' % self)
+        else:
+            logging.warn('Could not reboot node %s' % self)
+        return ret
     
     def destroy(self):
         '''Returns True if the destroy was successful, otherwise False'''
@@ -383,16 +391,6 @@ class Node(models.Model):
             counter += 1
             newname = "DECOM" + str(counter) + "-" + self.name
         self.name = newname
-        # Modify node_id to free it for future use
-        new_node_id = "DECOM" + str(counter) + "-" + self.node_id
-        while(len(Node.objects.filter(
-                provider=self.provider,node_id=new_node_id
-            ).exclude(
-                node_id=self.node_id
-            ))):
-            counter += 1
-            new_node_id = "DECOM" + str(counter) + "-" + self.node_id
-        self.node_id = new_node_id
         
         # Mark as decommissioned and save
         self.environment = 'Decommissioned'
