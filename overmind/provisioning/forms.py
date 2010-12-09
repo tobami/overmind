@@ -76,6 +76,23 @@ class CustomRadioFieldRenderer(forms.widgets.RadioFieldRenderer):
             % (force_unicode(w), w.choice_value) for w in self]))
 
 
+class SizeChoiceField(forms.ModelChoiceField):
+    field_width = 10
+    
+    def __init__(self, width, *args, **kwargs):
+        super(SizeChoiceField, self).__init__(*args, **kwargs)
+        self.field_width = width
+    
+    def label_from_instance(self, size):
+        string = str(size)
+        if size.price:
+            blankspaces = self.field_width - len(str(size))- len(str(size.price))
+            if blankspaces < 0:
+                blankspaces = 0
+            string += '&nbsp;'*blankspaces + size.price + ' $/hour'
+        return mark_safe(string)
+
+
 class NodeForm(forms.ModelForm):
     provider = forms.ModelChoiceField(
         queryset = Provider.objects.all(),
@@ -113,9 +130,10 @@ class NodeForm(forms.ModelForm):
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
             sizes = prov.get_sizes().order_by('price')
-            self.fields['size'] = forms.ModelChoiceField(
+            self.fields['size'] = SizeChoiceField(
                 queryset=sizes,
                 initial=sizes[0],
+                width=max([len(str(s)) for s in sizes]) + 5,
             )
         
         # Add image field

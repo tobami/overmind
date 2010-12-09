@@ -20,8 +20,8 @@ def overview(request):
     for n in Node.objects.exclude(environment='Decommissioned'):
         datatable = "<table>"
         fields = [
-            ['Created by', n.creator],
-            ['Created at', n.timestamp.strftime('%Y-%m-%d %H:%M:%S')],
+            ['Created by', n.created_by],
+            ['Created at', n.created_at.strftime('%Y-%m-%d %H:%M:%S')],
             ['Node ID', n.node_id],
             ['OS image', n.image],
             ['Location', n.location],
@@ -30,6 +30,9 @@ def overview(request):
         if n.size and n.size.price:
             fields.append(['Price', n.size.price + ' $/hour'])
         fields.append(['-----', '--'])
+        if n.destroyed_by:
+            fields.append(['Destroyed by', n.destroyed_by])
+            fields.append(['Destroyed at', n.destroyed_at])
         if n.private_ip:
             fields.append(['private_ip', n.private_ip])
         
@@ -236,7 +239,7 @@ def save_new_node(data, user):
                     node.public_ip  = data_from_provider['public_ip']
                     node.private_ip = data_from_provider.get('private_ip', '')
                     node.state      = get_state(data_from_provider['state'])
-                    node.creator    = user.username
+                    node.created_by = user.username
                     node.save_extra_data(data_from_provider.get('extra', ''))
                     try:
                         node.save()
@@ -261,7 +264,7 @@ def rebootnode(request, node_id):
 @permission_required('provisioning.delete_node')
 def destroynode(request, node_id):
     node = Node.objects.get(id=node_id)
-    result = node.destroy()
+    result = node.destroy(request.user.username)
     return HttpResponseRedirect('/overview/')
 
 @login_required

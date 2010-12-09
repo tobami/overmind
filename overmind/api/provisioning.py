@@ -160,8 +160,9 @@ class SizeHandler(BaseHandler):
 
 
 class NodeHandler(BaseHandler):
-    fields = ('id', 'name', 'node_id', 'image', 'location', 'size', 'public_ip',
-        'state', 'environment', 'extra_data', 'provider')
+    fields = ('id', 'name', 'node_id', 'provider', 'image', 'location', 'size', 
+        'public_ip', 'private_ip', 'created_by', 'state', 'environment',
+        'destroyed_by', 'created_at', 'destroyed_at')
     model = Node
     
     def create(self, request):
@@ -255,7 +256,7 @@ class NodeHandler(BaseHandler):
             if node.environment == 'Decommissioned':
                 return rc.NOT_HERE
             if node.provider.supports('destroy'):
-                node.destroy()
+                node.destroy(request.user.username)
             else:
                 node.decommission()
             return rc.DELETED

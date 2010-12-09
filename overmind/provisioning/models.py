@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from provisioning.controllers import ProviderController
 from provisioning.provider_meta import PROVIDERS
-import logging
+import logging, datetime
 import simplejson as json
 
 provider_meta_keys = PROVIDERS.keys()
@@ -102,10 +102,10 @@ class Provider(models.Model):
                 # Create a new Node
                 logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
-                    name      = node.name,
-                    node_id   = node.id,
-                    provider  = self,
-                    creator   = 'imported by Overmind',
+                    name       = node.name,
+                    node_id    = node.id,
+                    provider   = self,
+                    created_by = 'imported by Overmind',
                 )
                 try:
                     n.image = Image.objects.get(
@@ -338,8 +338,10 @@ class Node(models.Model):
     environment = models.CharField(
         default='Production', max_length=2, choices=ENVIRONMENT_CHOICES
     )
-    creator     = models.CharField(max_length=25)
-    timestamp   = models.DateTimeField(auto_now_add=True)
+    created_by   = models.CharField(max_length=25)
+    destroyed_by = models.CharField(max_length=25, blank=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+    destroyed_at = models.DateTimeField(null=True)
     
     class Meta:
         unique_together  = (('provider', 'name'), ('provider', 'node_id'))
@@ -367,7 +369,7 @@ class Node(models.Model):
             logging.warn('Could not reboot node %s' % self)
         return ret
     
-    def destroy(self):
+    def destroy(self, username):
         '''Returns True if the destroy was successful, otherwise False'''
         if self.provider.supports('destroy'):
             ret = self.provider.destroy_node(self)
@@ -377,6 +379,9 @@ class Node(models.Model):
                 logging.error("controler.destroy_node() did not return True: %s.\nnot calling Node.delete()" % ret)
                 return False
         self.decommission()
+        self.destroyed_by = username
+        self.destroyed_at = datetime.datetime.now()
+        self.save()
         return True
     
     def decommission(self):
@@ -395,5 +400,4 @@ class Node(models.Model):
         self.name = newname
         
         # Mark as decommissioned and save
-        self.environment = 'Decommissioned'
-        self.save()
+        self.environment  = 'Decommissioned'
