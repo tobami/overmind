@@ -21,7 +21,7 @@ class BaseProviderTestCase(TestCase):
         
         self.client = Client()
         #login = self.client.login(
-        #username=self.user.username, password=self.user.password)
+            #username=self.user.username, password=self.user.password)
         #self.assertTrue(login)
     
     def create_provider(self):

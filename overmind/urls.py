@@ -12,7 +12,10 @@ if settings.DEBUG:
 
 urlpatterns += patterns('',
     (r'^api/', include('overmind.api.urls')),
-    
+)
+
+# Provisioning
+urlpatterns += patterns('',
     (r'^overview/$', 'provisioning.views.overview'),
     (r'^provider/$', 'provisioning.views.provider'),
     (r'^node/$', 'provisioning.views.node'),
@@ -35,8 +38,10 @@ urlpatterns += patterns('',
     (r'^node/(?P<node_id>\d+)/destroy/$',\
         'provisioning.views.destroynode'),
     #(r'^$', 'redirect_to', {'url': '/overview/'}),
-    
-    # Users
+)
+
+# Users
+urlpatterns += patterns('',
     (r'^accounts/login/$', 'django.contrib.auth.views.login'),
     (r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
     (r'^accounts/new/$', 'provisioning.views.adduser'),
