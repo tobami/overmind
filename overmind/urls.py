@@ -28,15 +28,16 @@ urlpatterns += patterns('',
     (r'^node/image/(?P<image_id>\d+)/remove/$', 'provisioning.views.removeimage'),
     
     # Update
-    (r'^provider/update/$',\
-        'provisioning.views.updateproviders'),
+    (r'^provider/update/$', 'provisioning.views.updateproviders'),
+    
     # Reboot
     (r'^node/(?P<node_id>\d+)/reboot/$', 'provisioning.views.rebootnode'),
+    
     # Delete
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'provisioning.views.deleteprovider'),
-    (r'^node/(?P<node_id>\d+)/destroy/$',\
-        'provisioning.views.destroynode'),
+    (r'^node/(?P<node_id>\d+)/destroy/$', 'provisioning.views.destroynode'),
+    
     #(r'^$', 'redirect_to', {'url': '/overview/'}),
 )
 

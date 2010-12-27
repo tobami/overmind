@@ -89,11 +89,13 @@ class Provider(models.Model):
         if self.conn is None:
             self.conn = ProviderController(self)
     
+    @transaction.commit_on_success()
     def import_nodes(self):
         '''Sync nodes present at a provider with Overmind's DB'''
         if not self.supports('list'): return
         self.create_connection()
         nodes = self.conn.get_nodes()
+        
         # Import nodes not present in the DB
         for node in nodes:
             try:
@@ -146,7 +148,7 @@ class Provider(models.Model):
             if not found:
                 logging.info("import_nodes(): Delete node %s" % n)
                 n.decommission()
-        logging.debug("Finished synching")
+        logging.debug("Finished synching nodes")
     
     @transaction.commit_on_success()
     def import_images(self):
@@ -171,7 +173,7 @@ class Provider(models.Model):
             img.save()
             logging.debug(
                 "Added new image '%s' for provider %s" % (img.name, self))
-        logging.debug("Imported all images for provider %s" % self)
+        logging.info("Imported all images for provider %s" % self)
     
     @transaction.commit_on_success()
     def import_locations(self):
@@ -193,37 +195,58 @@ class Provider(models.Model):
             loc.save()
             logging.debug(
                 "Added new location '%s' for provider %s" % (loc.name, self))
-        logging.debug("Imported all locations for provider %s" % self)
+        logging.info("Imported all locations for provider %s" % self)
     
     @transaction.commit_on_success()
     def import_sizes(self):
         '''Get all sizes from this provider and store them in the DB'''
         if not self.supports('sizes'): return
         self.create_connection()
-        for size in self.conn.get_sizes():
+        sizes = self.conn.get_sizes()
+        
+        # Go through all sizes returned by the provider
+        for size in sizes:
             try:
-                # Update size if it exists
-                siz = Size.objects.get(size_id=size.id, provider=self)
+                # Read size
+                s = Size.objects.get(size_id=size.id, provider=self)
             except Size.DoesNotExist:
                 # Create new size if it didn't exist
-                siz = Size(
+                s = Size(
                     size_id = size.id,
                     provider = self,
                 )
-            siz.name      = size.name
-            siz.ram       = size.ram
-            siz.disk      = size.disk or ""
-            siz.bandwidth = size.bandwidth or ""
-            siz.price     = size.price or ""
-            siz.save()
-            logging.debug(
-                "Added new size '%s' for provider %s" % (siz.name, self))
-        logging.debug("Imported all sizes for provider %s" % self)
+            # Save/update size info
+            s.name      = size.name
+            s.ram       = size.ram
+            s.disk      = size.disk or ""
+            s.bandwidth = size.bandwidth or ""
+            s.price     = size.price or ""
+            s.save()
+            logging.debug("Saved size '%s' for provider %s" % (s.name, self))
+        
+        # Delete sizes in the DB not listed by the provider
+        for s in self.get_sizes():
+            found = False
+            for size in sizes:
+                if s.size_id == size.id:
+                    found = True
+                    break
+            # This size is probably not longer offered by the provider
+            if not found:
+                logging.debug("Deleted size %s" % s)
+                s.delete()
+        logging.debug("Finished synching sizes")
     
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
         self.save()
         self.import_nodes()
+    
+    def check_credentials(self):
+        if not self.supports('list'): return
+        self.create_connection()
+        self.conn.get_nodes()
+        return True
     
     def get_sizes(self):
         return self.size_set.all()

@@ -1,5 +1,13 @@
 # Django settings for Overmind project.
 import os, logging
+import djcelery
+
+djcelery.setup_loader()
+BROKER_HOST = "localhost"
+BROKER_PORT = 5672
+BROKER_USER = "guest"
+BROKER_PASSWORD = "guest"
+BROKER_VHOST = "/"
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -68,10 +76,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfResponseMiddleware',
 )
 
-#if DEBUG:
-    #MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    #INTERNAL_IPS = ('127.0.0.1',)
-
 ROOT_URLCONF = 'overmind.urls'
 
 TEMPLATE_DIRS = (
@@ -82,13 +86,11 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'djcelery',
     #'django.contrib.sites',
-    'overmind.provisioning',
-    'overmind.api',
+    'provisioning',
+    'api',
 )
-
-if DEBUG:
-    INSTALLED_APPS += ('debug_toolbar',)
 
 PUBLIC_KEY_FILE = "id_rsa.pub"
 PUBLIC_KEY = open(os.path.expanduser("~/.ssh/%s" % PUBLIC_KEY_FILE)).read()

@@ -6,11 +6,13 @@ from django.template import RequestContext
 from libcloud.types import InvalidCredsException
 
 from provisioning.models import Action, Provider, Node, get_state, Image
+from provisioning import tasks
 from provisioning.forms import ProviderForm, NodeForm, AddImageForm, ProfileEditForm
 from provisioning.forms import UserCreationFormExtended, UserEditForm
 from provisioning.provider_meta import PROVIDERS
 import logging
 import simplejson as json
+
 
 @login_required
 def overview(request):
@@ -23,13 +25,13 @@ def overview(request):
             ['Created by', n.created_by],
             ['Created at', n.created_at.strftime('%Y-%m-%d %H:%M:%S')],
             ['Node ID', n.node_id],
-            ['OS image', n.image],
-            ['Location', n.location],
-            ['Size', n.size],
+            ['OS image', n.image or "-"],
+            ['Location', n.location or "-"],
+            ['Size', n.size or "-"],
         ]
         if n.size and n.size.price:
             fields.append(['Price', n.size.price + ' $/hour'])
-        fields.append(['-----', '--'])
+        fields.append(['-----', '-----'])
         if n.destroyed_by:
             fields.append(['Destroyed by', n.destroyed_by])
             fields.append(['Destroyed at', n.destroyed_at])
@@ -120,11 +122,11 @@ def save_provider(form):
         provider = None
         try:
             provider = form.save()
-            #TODO: defer importing to a work queue
-            provider.import_images()
-            provider.import_locations()
-            provider.import_sizes()
-            provider.import_nodes()
+            # Make sure the credentials are correct
+            provider.check_credentials()
+            
+            logging.info('Provider saved %s' % provider.name)
+            result = tasks.import_provider_info.delay(provider.id)
         except InvalidCredsException:
             # Delete provider if InvalidCreds is raised (by EC2)
             # after it has been saved
@@ -132,11 +134,7 @@ def save_provider(form):
                 provider.delete()
             # Return form with InvalidCreds error
             error = 'Invalid account credentials'
-        except Exception, e:#Unexpected error. Log
-            error = e
-            logging.error(error)
         else:
-            logging.info('Provider saved %s' % provider.name)
             return None, form, provider
     else:
         error = 'form'

@@ -3,7 +3,7 @@ from libcloud.base import NodeAuthPassword, NodeAuthSSHKey, Node
 from libcloud.base import NodeImage, NodeSize, NodeLocation
 from libcloud.providers import get_driver
 from libcloud.deployment import SSHKeyDeployment
-from overmind.provisioning import plugins
+from provisioning import plugins
 from django.conf import settings
 import copy, logging
 
@@ -89,8 +89,6 @@ class ProviderController():
                     if field in args:
                         del args[field]#Avoid colissions with default args
                 args[str(self.extra_param_name)] = str(self.extra_param_value)
-                print "calling conn.create_node..."
-                print image
                 node = self.conn.create_node(
                     name=name, image=image, size=size, location=location, **args
                 )

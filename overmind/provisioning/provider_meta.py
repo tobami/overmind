@@ -1,6 +1,6 @@
 # List of supported providers and related info
 from django.conf import settings
-from overmind.provisioning import plugins
+from provisioning import plugins
 
 LIBCLOUD_PROVIDERS = {
     'DUMMY': {
