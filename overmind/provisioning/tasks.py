@@ -9,9 +9,9 @@ from datetime import timedelta
 def update_providers(**kwargs):
     logger = update_providers.get_logger(**kwargs)
     logger.debug("Syncing providers...")
-    for prov in Provider.objects.all():
-        import_sizes(prov.id)
-        import_nodes(prov.id)
+    for prov in Provider.objects.filter(ready=True):
+        import_sizes.delay(prov.id)
+        import_nodes.delay(prov.id)
 
 @task()
 def import_provider_info(provider_id, **kwargs):
@@ -56,3 +56,6 @@ def import_nodes(provider_id, **kwargs):
     prov = Provider.objects.get(id=provider_id)
     logger.debug('Importing nodes for provider %s...' % prov)
     prov.import_nodes()
+    if not prov.ready:
+        prov.ready = True
+        prov.save()

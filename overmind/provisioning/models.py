@@ -43,6 +43,7 @@ class Provider(models.Model):
         "Extra parameter value", max_length=30, blank=True)
     
     actions = models.ManyToManyField(Action)
+    ready   = models.BooleanField(default=False)
     conn    = None
     
     class Meta:
@@ -424,3 +425,4 @@ class Node(models.Model):
         
         # Mark as decommissioned and save
         self.environment  = 'Decommissioned'
+        self.save()
