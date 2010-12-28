@@ -125,27 +125,33 @@ class NodeForm(forms.ModelForm):
             self.fields['location'] = forms.ModelChoiceField(
                 queryset=locs,
                 widget=forms.RadioSelect(),
+                empty_label=None,
             )
             if len(locs):
-                self.fields['locs'].initial = locs[0]
+                self.fields['location'].initial = locs[0]
         
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
             sizes = prov.get_sizes().order_by('price')
+            width = None
+            if len(sizes):
+                width = max([len(str(s)) for s in sizes]) + 5
+            
             self.fields['size'] = SizeChoiceField(
                 queryset=sizes,
+                width=width,
+                empty_label=None,
             )
             if len(sizes):
-                self.fields['size'].width = max([len(str(s)) for s in sizes]) + 5
-                self.fields['size'].initial = size[0]
+                self.fields['size'].initial = sizes[0]
         
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
             images = prov.get_fav_images()
             self.fields['image'] = forms.ModelChoiceField(
                 queryset=images,
+                widget=forms.RadioSelect(renderer=CustomRadioFieldRenderer),
                 empty_label=None,
-                widget=forms.RadioSelect(renderer=CustomRadioFieldRenderer)
             )
             if len(images):
                 self.fields['image'].initial = images[0]
