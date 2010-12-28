@@ -79,9 +79,10 @@ class CustomRadioFieldRenderer(forms.widgets.RadioFieldRenderer):
 class SizeChoiceField(forms.ModelChoiceField):
     field_width = 10
     
-    def __init__(self, width, *args, **kwargs):
+    def __init__(self, width=None, *args, **kwargs):
         super(SizeChoiceField, self).__init__(*args, **kwargs)
-        self.field_width = width
+        if width:
+            self.field_width = width
     
     def label_from_instance(self, size):
         string = str(size)
@@ -123,18 +124,20 @@ class NodeForm(forms.ModelForm):
             locs = prov.get_locations()
             self.fields['location'] = forms.ModelChoiceField(
                 queryset=locs,
-                initial=locs[0],
                 widget=forms.RadioSelect(),
             )
+            if len(locs):
+                self.fields['locs'].initial = locs[0]
         
         # Add size field
         if 'size' in provider_info.get('form_fields', []):
             sizes = prov.get_sizes().order_by('price')
             self.fields['size'] = SizeChoiceField(
                 queryset=sizes,
-                initial=sizes[0],
-                width=max([len(str(s)) for s in sizes]) + 5,
             )
+            if len(sizes):
+                self.fields['size'].width = max([len(str(s)) for s in sizes]) + 5
+                self.fields['size'].initial = size[0]
         
         # Add image field
         if 'image' in provider_info.get('form_fields', []):
