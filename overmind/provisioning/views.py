@@ -233,7 +233,7 @@ def save_new_node(data, user):
                 error, data_from_provider = provider.create_node(form)
                 if error is None:
                     node = form.save(commit = False)
-                    node.node_id    = data_from_provider['node_id']
+                    node.node_id    = str(data_from_provider['node_id'])
                     node.public_ip  = data_from_provider['public_ip']
                     node.private_ip = data_from_provider.get('private_ip', '')
                     node.state      = get_state(data_from_provider['state'])

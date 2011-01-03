@@ -100,13 +100,13 @@ class Provider(models.Model):
         # Import nodes not present in the DB
         for node in nodes:
             try:
-                n = Node.objects.get(provider=self, node_id=node.id)
+                n = Node.objects.get(provider=self, node_id=str(node.id))
             except Node.DoesNotExist:
                 # Create a new Node
                 logging.info("import_nodes(): adding %s ..." % node)
                 n = Node(
                     name       = node.name,
-                    node_id    = node.id,
+                    node_id    = str(node.id),
                     provider   = self,
                     created_by = 'imported by Overmind',
                 )
@@ -141,7 +141,7 @@ class Provider(models.Model):
             ).exclude(environment='Decommissioned'):
             found = False
             for node in nodes:
-                if n.node_id == node.id:
+                if n.node_id == str(node.id):
                     found = True
                     break
             # This node was probably removed from the provider by another tool
@@ -163,11 +163,11 @@ class Provider(models.Model):
         for image in self.conn.get_images():
             try:
                 # Update image if it exists
-                img = Image.objects.get(image_id=image.id, provider=self)
+                img = Image.objects.get(image_id=str(image.id), provider=self)
             except Image.DoesNotExist:
                 # Create new image if it didn't exist
                 img = Image(
-                    image_id = image.id,
+                    image_id = str(image.id),
                     provider = self,
                 )
             img.name = image.name
@@ -184,7 +184,7 @@ class Provider(models.Model):
         for location in self.conn.get_locations():
             try:
                 # Update location if it exists
-                loc = Location.objects.get(location_id=location.id, provider=self)
+                loc = Location.objects.get(location_id=str(location.id), provider=self)
             except Location.DoesNotExist:
                 # Create new location if it didn't exist
                 loc = Location(
@@ -209,11 +209,11 @@ class Provider(models.Model):
         for size in sizes:
             try:
                 # Read size
-                s = Size.objects.get(size_id=size.id, provider=self)
+                s = Size.objects.get(size_id=str(size.id), provider=self)
             except Size.DoesNotExist:
                 # Create new size if it didn't exist
                 s = Size(
-                    size_id = size.id,
+                    size_id = str(size.id),
                     provider = self,
                 )
             # Save/update size info
@@ -229,7 +229,7 @@ class Provider(models.Model):
         for s in self.get_sizes():
             found = False
             for size in sizes:
-                if s.size_id == size.id:
+                if s.size_id == str(size.id):
                     found = True
                     break
             # This size is probably not longer offered by the provider
@@ -344,7 +344,7 @@ class Node(models.Model):
     )
     # Standard node fields
     name        = models.CharField(max_length=25)
-    node_id        = models.CharField(max_length=50)
+    node_id     = models.CharField(max_length=50)
     provider    = models.ForeignKey(Provider)
     image       = models.ForeignKey(Image, null=True, blank=True)
     location    = models.ForeignKey(Location, null=True, blank=True)
@@ -371,7 +371,7 @@ class Node(models.Model):
         unique_together  = (('provider', 'name'), ('provider', 'node_id'))
     
     def __unicode__(self):
-        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + self.node_id + ">"
+        return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + str(self.node_id) + ">"
     
     def save_extra_data(self, data):
         self._extra_data = json.dumps(data)
