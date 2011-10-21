@@ -49,7 +49,7 @@ class ReadProviderTest(BaseProviderTestCase):
         self.p3.save()
     
     def test_not_authenticated(self):
-        '''A non authenticated user should get 401'''
+        """Should get a 401 when the user is not authenticated"""
         # NOTE: Use non-authenticated client
         response = self.client.get(self.path)
         self.assertEquals(response.status_code, 401)
