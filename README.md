@@ -34,7 +34,7 @@ See the wiki for architectural info and to know more about the future direction 
 * `sudo apt-get install rabbitmq-server`
 * `sudo pip install django`
 * `sudo pip install django-celery`
-* `sudo pip install libcloud`
+* `sudo pip install apache-libcloud`
 
 Install Overmind
 
