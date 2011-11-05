@@ -1,8 +1,8 @@
-from libcloud import types
-from libcloud.base import NodeAuthPassword, NodeAuthSSHKey, Node
-from libcloud.base import NodeImage, NodeSize, NodeLocation
-from libcloud.providers import get_driver
-from libcloud.deployment import SSHKeyDeployment
+from libcloud.compute import types
+from libcloud.compute.base import NodeAuthPassword, NodeAuthSSHKey, Node
+from libcloud.compute.base import NodeImage, NodeSize, NodeLocation
+from libcloud.compute.providers import get_driver
+from libcloud.compute.deployment import SSHKeyDeployment
 from provisioning import plugins
 from django.conf import settings
 import copy, logging

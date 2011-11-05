@@ -1,6 +1,6 @@
 # Dedicated Hardware plugin
-from libcloud.base import ConnectionKey, NodeDriver, Node
-from libcloud.types import NodeState
+from libcloud.compute.base import ConnectionKey, NodeDriver, Node
+from libcloud.compute.types import NodeState
 
 display_name = "Dedicated Hardware"
 access_key   = None

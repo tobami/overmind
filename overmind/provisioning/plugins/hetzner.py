@@ -1,6 +1,6 @@
 # Hetzner plugin
-from libcloud.base import ConnectionUserAndKey, NodeDriver, Node
-from libcloud.types import NodeState, InvalidCredsException
+from libcloud.compute.base import ConnectionUserAndKey, NodeDriver, Node
+from libcloud.compute.types import NodeState, InvalidCredsException
 import httplib2
 import simplejson as json
 from urllib import urlencode
