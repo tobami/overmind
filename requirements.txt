@@ -1,0 +1,8 @@
+Django
+django-celery
+django-piston
+IPy
+apache-libcloud
+httplib2
+simplejson
+
