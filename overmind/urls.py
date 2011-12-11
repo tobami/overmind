@@ -37,8 +37,8 @@ urlpatterns += patterns('',
     (r'^provider/(?P<provider_id>\d+)/delete/$',\
         'provisioning.views.deleteprovider'),
     (r'^node/(?P<node_id>\d+)/destroy/$', 'provisioning.views.destroynode'),
-    
-    #(r'^$', 'redirect_to', {'url': '/overview/'}),
+
+    (r'^$', redirect_to, {'url': '/overview/', 'permanent': False}),
 )
 
 # Users
