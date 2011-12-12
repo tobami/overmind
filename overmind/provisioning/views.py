@@ -3,7 +3,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.decorators import login_required, permission_required
 from django.template import RequestContext
-from libcloud.types import InvalidCredsException
+try:
+	from libcloud.common.types import InvalidCredsException
+except:
+	from libcloud.types import InvalidCredsException
 
 from provisioning.models import Action, Provider, Node, get_state, Image
 from provisioning import tasks
