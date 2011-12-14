@@ -1,6 +1,6 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
-from libcloud.types import InvalidCredsException
+from libcloud.common.types import InvalidCredsException
 
 from overmind.provisioning.provider_meta import PROVIDERS
 from overmind.provisioning.models import Provider, Image, Location, Size, Node

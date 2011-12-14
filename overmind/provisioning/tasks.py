@@ -1,6 +1,6 @@
 from celery.task import task, periodic_task
 from celery.task.sets import subtask
-from libcloud.types import InvalidCredsException
+from libcloud.common.types import InvalidCredsException
 from provisioning.models import Provider
 from datetime import timedelta
 
