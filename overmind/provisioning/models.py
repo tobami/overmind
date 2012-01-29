@@ -3,6 +3,7 @@ from provisioning.controllers import ProviderController
 from provisioning.provider_meta import PROVIDERS
 import logging, datetime
 import simplejson as json
+from IPy import IP
 
 provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
@@ -96,7 +97,6 @@ class Provider(models.Model):
         if not self.supports('list'): return
         self.create_connection()
         nodes = self.conn.get_nodes()
-        
         # Import nodes not present in the DB
         for node in nodes:
             try:
@@ -126,11 +126,13 @@ class Provider(models.Model):
                     n.size = Size.objects.get(size_id=size_id, provider=self)
                 except Size.DoesNotExist:
                     n.size = None
-            
+            n.save()
             # Import/Update node info
-            n.public_ip = node.public_ip[0]
-            if len(node.private_ip):
-                n.private_ip = node.private_ip[0]
+            for i in range(0, len(node.public_ips)):
+                n.create_ip(ip=node.public_ips[i], position=i, is_public=True)
+            if len(node.private_ips):
+                for i in range(0, len(node.private_ips)):
+                    n.create_ip(ip=node.private_ips[i], position=i, is_public=False)
             n.state = get_state(node.state)
             n.save_extra_data(node.extra)
             n.save()
@@ -323,6 +325,20 @@ class Size(models.Model):
         unique_together  = ('provider', 'size_id')
 
 
+class NodeIP(models.Model):
+    INET_FAMILIES = (
+        ('inet4', 4),
+        ('inet6', 6),
+    )
+    node = models.ForeignKey('Node', related_name='ips')
+    address = models.CharField(max_length=50)   # For IPv6 support, not fully supported in django < 1.3.2 (IIRC)
+    is_public = models.BooleanField(default=True)
+    version = models.IntegerField(choices=INET_FAMILIES, default=4)
+    position = models.IntegerField()
+
+    def __unicode__(self):
+        return "%s" % (self.address)
+
 class Node(models.Model):
     STATE_CHOICES = (
         (u'Begin', u'Begin'),
@@ -353,8 +369,6 @@ class Node(models.Model):
     state       = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
-    public_ip   = models.CharField(max_length=25)
-    private_ip = models.CharField(max_length=25, blank=True)
     hostname    = models.CharField(max_length=25, blank=True)
     _extra_data = models.TextField(blank=True)
     
@@ -366,7 +380,39 @@ class Node(models.Model):
     destroyed_by = models.CharField(max_length=25, blank=True)
     created_at   = models.DateTimeField(auto_now_add=True)
     destroyed_at = models.DateTimeField(null=True)
-    
+
+    @property
+    def public_ips(self):
+        return self.ips.filter(is_public=True).all()
+
+
+    @property
+    def private_ips(self):
+        return self.ips.filter(is_public=False).all()
+
+    # Backward compatibility properties
+    @property
+    def public_ip(self):
+        public_ips = self.ips.filter(is_public=True).filter(version=4)
+        if len(public_ips):
+            return public_ips[0].address
+        return ''
+
+    @property
+    def private_ip(self):
+        private_ips = self.ips.filter(is_public=False)
+        if len(private_ips):
+            return private_ips[0].address
+        return ''
+
+    # helper for related ips creation
+    def create_ip(self, ip, position, is_public):
+        ipaddr = IP(ip)
+        return NodeIP.objects.create(
+            address=ipaddr.i.strFullsize(), position=position, version=ipaddr.version(),
+            is_public=is_public, node=self
+        )
+
     class Meta:
         unique_together  = (('provider', 'name'), ('provider', 'node_id'))
     
