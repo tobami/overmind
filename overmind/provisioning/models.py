@@ -409,7 +409,7 @@ class Node(models.Model):
     def create_ip(self, ip, position, is_public):
         ipaddr = IP(ip)
         return NodeIP.objects.create(
-            address=ipaddr.i.strFullsize(), position=position, version=ipaddr.version(),
+            address=ipaddr.strFullsize(), position=position, version=ipaddr.version(),
             is_public=is_public, node=self
         )
 
