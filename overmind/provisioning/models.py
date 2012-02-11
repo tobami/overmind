@@ -126,13 +126,10 @@ class Provider(models.Model):
                     n.size = Size.objects.get(size_id=size_id, provider=self)
                 except Size.DoesNotExist:
                     n.size = None
-            n.save()
+                n.save()
             # Import/Update node info
-            for i in range(0, len(node.public_ips)):
-                n.create_ip(ip=node.public_ips[i], position=i, is_public=True)
-            if len(node.private_ips):
-                for i in range(0, len(node.private_ips)):
-                    n.create_ip(ip=node.private_ips[i], position=i, is_public=False)
+            n.sync_ips(node.public_ips, public=True)
+            n.sync_ips(node.private_ips, public=False)
             n.state = get_state(node.state)
             n.save_extra_data(node.extra)
             n.save()
@@ -406,12 +403,27 @@ class Node(models.Model):
         return ''
 
     # helper for related ips creation
-    def create_ip(self, ip, position, is_public):
-        ipaddr = IP(ip)
-        return NodeIP.objects.create(
-            address=ipaddr.strFullsize(), position=position, version=ipaddr.version(),
-            is_public=is_public, node=self
-        )
+    def sync_ips(self, ips, public=True):
+        """Sync IP for a node"""
+        previous = self.ips.filter(is_public=public).order_by('position')
+        addrs = []
+        for i in ips:
+            addr = IP(i)
+            addrs.append(addr)
+        new_ips = [x.strFullsize() for x in addrs]
+        for p in previous:
+            if p.address in new_ips:
+                p.position = new_ips.index(p.address)
+            else:
+                p.delete()
+        for a in addrs:
+            if a.strFullsize() not in [x.address for x in previous]:
+                # Create new nodeip object
+                NodeIP.objects.create(
+                    address=a.strFullsize(),
+                    position=new_ips.index(a.strFullsize()),
+                    version=a.version(), is_public=public, node=self
+                )
 
     class Meta:
         unique_together  = (('provider', 'name'), ('provider', 'node_id'))
