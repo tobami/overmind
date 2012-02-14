@@ -328,10 +328,11 @@ class NodeIP(models.Model):
         ('inet6', 6),
     )
     node = models.ForeignKey('Node', related_name='ips')
-    address = models.CharField(max_length=50)   # For IPv6 support, not fully supported in django < 1.3.2 (IIRC)
+    address = models.IPAddressField()
     is_public = models.BooleanField(default=True)
     version = models.IntegerField(choices=INET_FAMILIES, default=4)
     position = models.IntegerField()
+    interface_name = models.CharField(max_length=32, blank=True)
 
     def __unicode__(self):
         return "%s" % (self.address)
@@ -380,12 +381,12 @@ class Node(models.Model):
 
     @property
     def public_ips(self):
-        return self.ips.filter(is_public=True).all()
+        return self.ips.filter(is_public=True)
 
 
     @property
     def private_ips(self):
-        return self.ips.filter(is_public=False).all()
+        return self.ips.filter(is_public=False)
 
     # Backward compatibility properties
     @property
