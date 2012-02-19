@@ -161,7 +161,7 @@ class SizeHandler(BaseHandler):
 
 class NodeHandler(BaseHandler):
     fields = ('id', 'name', 'node_id', 'provider', 'image', 'location', 'size', 
-        'public_ip', 'private_ip', 'created_by', 'state', 'environment',
+        'public_ips', 'private_ips', 'created_by', 'state', 'environment',
         'destroyed_by', 'created_at', 'destroyed_at')
     model = Node
     
