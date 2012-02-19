@@ -27,7 +27,7 @@
     <h2>Nodes<span class="actions"><a href="/provider/update/">update</a></span></h2>
     <br />
     <ul class="node">
-        {% for row in nodes %}<li id="n_{{ row.node.provider.id }}_{{ row.node.id }}"><span class="name" data-tooltip="{{ row.data }}">{{ row.node.provider }} - {{ row.node.name }} - {{ row.node.public_ip }} - {{ row.node.state }}</span><span class="actions">{% for a in row.actions %}<a href="{% if a.confirmation %}javascript:confirmation('{{ a.confirmation }}', '{% endif %}/node/{{ row.node.id }}/{{ a.action }}{% if a.confirmation %}');{% endif %}">{{ a.label }}</a>{% endfor %}</span></li>
+        {% for row in nodes %}<li id="n_{{ row.node.provider.id }}_{{ row.node.id }}"><span class="name" data-tooltip="{{ row.data }}">{{ row.node.provider }} - {{ row.node.name }} - {{ row.node.public_ips.0 }} - {{ row.node.state }}</span><span class="actions">{% for a in row.actions %}<a href="{% if a.confirmation %}javascript:confirmation('{{ a.confirmation }}', '{% endif %}/node/{{ row.node.id }}/{{ a.action }}{% if a.confirmation %}');{% endif %}">{{ a.label }}</a>{% endfor %}</span></li>
         {% endfor %}
     </ul>
 {% endblock %}

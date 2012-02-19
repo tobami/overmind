@@ -97,7 +97,7 @@ class ProviderController():
             return e, None
         
         return None, {
-            'public_ip': node.public_ip[0],
+            'public_ips': node.public_ips,
             'node_id': node.id,
             'state': node.state,
             'extra': node.extra,
