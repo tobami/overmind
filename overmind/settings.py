@@ -87,7 +87,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'djcelery',
-    #'django.contrib.sites',
+    'django.contrib.sites',
     'provisioning',
     'api',
 )

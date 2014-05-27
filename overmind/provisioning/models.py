@@ -1,9 +1,13 @@
+import json
+import datetime
+import logging
+
+from IPy import IP
 from django.db import models, transaction
+
 from provisioning.controllers import ProviderController
 from provisioning.provider_meta import PROVIDERS
-import logging, datetime
-import simplejson as json
-from IPy import IP
+
 
 provider_meta_keys = PROVIDERS.keys()
 provider_meta_keys.sort()
@@ -18,15 +22,17 @@ STATES = {
     4: 'Unknown',
 }
 
+
 def get_state(state):
-    if state not in STATES: state = 4
+    if state not in STATES:
+        state = 4
     return STATES[state]
 
 
 class Action(models.Model):
     name = models.CharField(unique=True, max_length=20)
     show = models.BooleanField()
-    
+
     def __unicode__(self):
         return self.name
 
@@ -37,19 +43,19 @@ class Provider(models.Model):
         default='EC2_US_EAST', max_length=25, choices=PROVIDER_CHOICES)
     access_key        = models.CharField("Access Key", max_length=100, blank=True)
     secret_key        = models.CharField("Secret Key", max_length=100, blank=True)
-    
+
     extra_param_name  = models.CharField(
         "Extra parameter name", max_length=30, blank=True)
     extra_param_value = models.CharField(
         "Extra parameter value", max_length=30, blank=True)
-    
+
     actions = models.ManyToManyField(Action)
     ready   = models.BooleanField(default=False)
     conn    = None
-    
+
     class Meta:
         unique_together = ('provider_type', 'access_key')
-    
+
     def save(self, *args, **kwargs):
         # Define proper key field names
         if PROVIDERS[self.provider_type]['access_key'] is not None:
@@ -60,12 +66,12 @@ class Provider(models.Model):
             self._meta.get_field('secret_key').verbose_name = \
                 PROVIDERS[self.provider_type]['secret_key']
             self._meta.get_field('access_key').blank = False
-        
+
         # Read optional extra_param
         if 'extra_param' in PROVIDERS[self.provider_type].keys():
             self.extra_param_name  = PROVIDERS[self.provider_type]['extra_param'][0]
             self.extra_param_value = PROVIDERS[self.provider_type]['extra_param'][1]
-        
+
         # Check connection and save new provider
         self.create_connection()
         # If connection was succesful save provider
@@ -79,18 +85,18 @@ class Provider(models.Model):
             except Action.DoesNotExist:
                 raise Exception, 'Unsupported action "%s" specified' % action_name
             self.actions.add(action)
-    
+
     def supports(self, action):
         try:
             self.actions.get(name=action)
             return True
         except Action.DoesNotExist:
             return False
-    
+
     def create_connection(self):
         if self.conn is None:
             self.conn = ProviderController(self)
-    
+
     @transaction.commit_on_success()
     def import_nodes(self):
         '''Sync nodes present at a provider with Overmind's DB'''
@@ -134,7 +140,7 @@ class Provider(models.Model):
             n.save_extra_data(node.extra)
             n.save()
             logging.debug("import_nodes(): succesfully saved %s" % node.name)
-        
+
         # Delete nodes in the DB not listed by the provider
         for n in Node.objects.filter(provider=self
             ).exclude(environment='Decommissioned'):
@@ -149,7 +155,7 @@ class Provider(models.Model):
                 logging.info("import_nodes(): Delete node %s" % n)
                 n.decommission()
         logging.debug("Finished synching nodes")
-    
+
     @transaction.commit_on_success()
     def import_images(self):
         '''Get all images from this provider and store them in the DB
@@ -174,7 +180,7 @@ class Provider(models.Model):
             logging.debug(
                 "Added new image '%s' for provider %s" % (img.name, self))
         logging.info("Imported all images for provider %s" % self)
-    
+
     @transaction.commit_on_success()
     def import_locations(self):
         '''Get all locations from this provider and store them in the DB'''
@@ -196,14 +202,14 @@ class Provider(models.Model):
             logging.debug(
                 "Added new location '%s' for provider %s" % (loc.name, self))
         logging.info("Imported all locations for provider %s" % self)
-    
+
     @transaction.commit_on_success()
     def import_sizes(self):
         '''Get all sizes from this provider and store them in the DB'''
         if not self.supports('sizes'): return
         self.create_connection()
         sizes = self.conn.get_sizes()
-        
+
         # Go through all sizes returned by the provider
         for size in sizes:
             try:
@@ -223,7 +229,7 @@ class Provider(models.Model):
             s.price     = size.price or ""
             s.save()
             logging.debug("Saved size '%s' for provider %s" % (s.name, self))
-        
+
         # Delete sizes in the DB not listed by the provider
         for s in self.get_sizes():
             found = False
@@ -236,42 +242,42 @@ class Provider(models.Model):
                 logging.debug("Deleted size %s" % s)
                 s.delete()
         logging.debug("Finished synching sizes")
-    
+
     def update(self):
         logging.debug('Updating provider "%s"...' % self.name)
         self.save()
         self.import_nodes()
-    
+
     def check_credentials(self):
         if not self.supports('list'): return
         self.create_connection()
         self.conn.get_nodes()
         return True
-    
+
     def get_sizes(self):
         return self.size_set.all()
-    
+
     def get_images(self):
         return self.image_set.all()
-    
+
     def get_fav_images(self):
         return self.image_set.filter(favorite=True).order_by('-last_used')
-    
+
     def get_locations(self):
         return self.location_set.all()
-    
+
     def create_node(self, data):
         self.create_connection()
         return self.conn.create_node(data)
-    
+
     def reboot_node(self, node):
         self.create_connection()
         return self.conn.reboot_node(node)
-    
+
     def destroy_node(self, node):
         self.create_connection()
         return self.conn.destroy_node(node)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -283,10 +289,10 @@ class Image(models.Model):
     provider  = models.ForeignKey(Provider)
     favorite  = models.BooleanField(default=False)
     last_used = models.DateTimeField(auto_now=True)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     class Meta:
         unique_together  = ('provider', 'image_id')
 
@@ -297,10 +303,10 @@ class Location(models.Model):
     name        = models.CharField(max_length=20)
     country     = models.CharField(max_length=20)
     provider    = models.ForeignKey(Provider)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     class Meta:
         unique_together  = ('provider', 'location_id')
 
@@ -314,10 +320,10 @@ class Size(models.Model):
     bandwidth = models.CharField(max_length=20, blank=True)
     price     = models.CharField(max_length=20, blank=True)
     provider  = models.ForeignKey(Provider)
-    
+
     def __unicode__(self):
         return "%s (%sMB)" % (self.name, self.ram)
-    
+
     class Meta:
         unique_together  = ('provider', 'size_id')
 
@@ -363,13 +369,13 @@ class Node(models.Model):
     image       = models.ForeignKey(Image, null=True, blank=True)
     location    = models.ForeignKey(Location, null=True, blank=True)
     size        = models.ForeignKey(Size, null=True, blank=True)
-    
+
     state       = models.CharField(
         default='Begin', max_length=20, choices=STATE_CHOICES
     )
     hostname    = models.CharField(max_length=25, blank=True)
     _extra_data = models.TextField(blank=True)
-    
+
     # Overmind related fields
     environment = models.CharField(
         default='Production', max_length=2, choices=ENVIRONMENT_CHOICES
@@ -428,30 +434,30 @@ class Node(models.Model):
 
     class Meta:
         unique_together  = (('provider', 'name'), ('provider', 'node_id'))
-    
+
     def __unicode__(self):
         return "<" + str(self.provider) + ": " + self.name + " - " + self.public_ip + " - " + str(self.node_id) + ">"
-    
+
     def save_extra_data(self, data):
         self._extra_data = json.dumps(data)
-    
+
     def extra_data(self):
         if self._extra_data == '':
             return {}
         return json.loads(self._extra_data)
-    
+
     def reboot(self):
         '''Returns True if the reboot was successful, otherwise False'''
         if not self.provider.supports('reboot'):
             return True
-        
+
         ret = self.provider.reboot_node(self)
         if ret:
             logging.debug('Rebooted %s' % self)
         else:
             logging.warn('Could not reboot node %s' % self)
         return ret
-    
+
     def destroy(self, username):
         '''Returns True if the destroy was successful, otherwise False'''
         if self.provider.supports('destroy'):
@@ -466,7 +472,7 @@ class Node(models.Model):
         self.destroyed_at = datetime.datetime.now()
         self.save()
         return True
-    
+
     def decommission(self):
         '''Rename node and set its environment to decomissioned'''
         self.state = 'Terminated'
@@ -481,7 +487,7 @@ class Node(models.Model):
             counter += 1
             newname = "DECOM" + str(counter) + "-" + self.name
         self.name = newname
-        
+
         # Mark as decommissioned and save
         self.environment  = 'Decommissioned'
         self.save()

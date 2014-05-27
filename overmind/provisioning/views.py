@@ -1,3 +1,6 @@
+import logging
+import json
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User, Group
@@ -10,8 +13,6 @@ from provisioning import tasks
 from provisioning.forms import ProviderForm, NodeForm, AddImageForm, ProfileEditForm
 from provisioning.forms import UserCreationFormExtended, UserEditForm
 from provisioning.provider_meta import PROVIDERS
-import logging
-import simplejson as json
 
 
 @login_required
@@ -37,20 +38,20 @@ def overview(request):
             fields.append(['Destroyed at', n.destroyed_at])
         if n.private_ip:
             fields.append(['private_ip', n.private_ip])
-        
+
         for key, val in n.extra_data().items():
             fields.append([key, val])
-        
+
         for field in fields:
             datatable += "<tr><td>" + field[0] + ":</td><td>" + str(field[1])
             datatable += "</td></tr></td>"
         datatable += "</table>"
-        
+
         actions_list = []
         if n.state != 'Terminated' and \
             request.user.has_perm('provisioning.change_node'):
             actions = n.provider.actions.filter(show=True)
-            
+
             if actions.filter(name='reboot'):
                 actions_list.append({
                     'action': 'reboot',
@@ -58,7 +59,7 @@ def overview(request):
                     'confirmation': 'Are you sure you want to reboot the node "%s"'\
                     % n.name,
                 })
-            
+
             if actions.filter(name='destroy'):
                 actions_list.append({
                     'action': 'destroy',
@@ -72,9 +73,9 @@ def overview(request):
                     'label': 'delete',
                     'confirmation': 'This action will remove the node %s with IP %s' % (n.name, n.public_ip),
                 })
-        
+
         nodes.append({ 'node': n, 'data': datatable, 'actions': actions_list })
-    
+
     variables = RequestContext(request, {
         'nodes': nodes,
         'provider_list': provider_list,
@@ -88,7 +89,7 @@ def provider(request):
     provider_types.sort()
     for p in provider_types:
         providers.append([p, PROVIDERS[p]['display_name']])
-    
+
     variables = RequestContext(request, {
         'provider_types': providers, 'user': request.user,
     })
@@ -124,7 +125,7 @@ def save_provider(form):
             provider = form.save()
             # Make sure the credentials are correct
             provider.check_credentials()
-            
+
             logging.info('Provider saved %s' % provider.name)
             result = tasks.import_provider_info.delay(provider.id)
         except InvalidCredsException:
@@ -221,7 +222,7 @@ def save_new_node(data, user):
         form = NodeForm(provider_id, data)
     except Provider.DoesNotExist:
         error = 'Incorrect provider id'
-    
+
     if form is not None:
         if form.is_valid():
             try:
@@ -289,7 +290,7 @@ def adduser(request):
             return HttpResponse('<p>success</p>')
     else:
         form = UserCreationFormExtended()
-    
+
     return render_to_response("registration/register.html",
         {'form': form, 'editing': False}
     )
@@ -301,7 +302,7 @@ def edituser(request, id):
         # If user doesn't have auth permissions and he/she is not editting
         # his/her own profile don't allow the operation
         return HttpResponse("<p>Your don't have permissions to edit users</p>")
-    
+
     if request.method == 'POST':
         if request.user.has_perm('auth.change_user'):
             admin   = Group.objects.get(name='Admin')
@@ -314,7 +315,7 @@ def edituser(request, id):
             form = UserEditForm(request.POST, instance=edit_user)
         else:
             form = ProfileEditForm(request.POST, instance=edit_user)
-        
+
         if form.is_valid():
             form.save()
             return HttpResponse('<p>success</p>')
@@ -323,7 +324,7 @@ def edituser(request, id):
             form = UserEditForm(instance=edit_user)
         else:
             form = ProfileEditForm(instance=edit_user)
-    
+
     variables = RequestContext(request, {
         'form': form, 'editing': True, 'edit_user': edit_user
     })

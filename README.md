@@ -24,19 +24,11 @@ See the wiki for architectural info and to know more about the future direction 
 * django-celery
 * RabbitMQ (or alternative message queue supported by Celery)
 
-#### Optional
+All python dependencies can be installed using the requirements file:
 
-* django-piston (for the REST API)
-* IPy (optional, improved IP address validation for the "Dedicated Hardware" plugin)
+    $ pip install -r requirements.txt
 
-### Example installation on Debian/Ubuntu
-
-* `sudo apt-get install rabbitmq-server`
-* `sudo pip install django`
-* `sudo pip install django-celery`
-* `sudo pip install apache-libcloud`
-
-Install Overmind
+### Install Overmind
 
 * Download the last stable release from
   [http://github.com/tobami/overmind/downloads](http://github.com/tobami/overmind/downloads)
@@ -50,7 +42,7 @@ Install Overmind
         python manage.py celeryd -l info
 
   and the django development server
-  
+
         python manage.py runserver
 
 Now you can visit the Overmind overview page on `localhost:8000/overview`
