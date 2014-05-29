@@ -12,15 +12,15 @@ The first version is a *unified front-end* to public and private clouds, custom 
 * Complete REST API for provider and nodes
 * Authentication with three user roles
 
-See the wiki for architectural info and to know more about the future direction of the project.
+See the wiki for architectural info.
 
 ## Installation
 
 ### Requirements
 
 * Python 2.6+
-* Django 1.2+
-* libcloud
+* Django 1.3
+* apache-libcloud
 * django-celery
 * RabbitMQ (or alternative message queue supported by Celery)
 
