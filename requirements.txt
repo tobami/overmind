@@ -4,4 +4,4 @@ celery==2.5.5
 django-celery==2.5.5
 IPy==0.81
 apache-libcloud==0.12.4
-httplib2==0.9
+httplib2==0.18.0
