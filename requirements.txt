@@ -1,4 +1,4 @@
-Django==1.3.5
+Django==2.2.24
 django-piston==0.2.3
 celery==2.5.5
 django-celery==2.5.5
